@@ -40,7 +40,6 @@ class RuleCondition(BaseModel):
     operator: RuleConditionOperator
     value: Any
 
-# Definišemo polja za RuleConditionGroup nakon što su svi tipovi poznati
 RuleConditionGroup.model_rebuild(force=True)
 RuleConditionGroup.model_fields.update({
     'operator': str, # 'and' or 'or'
