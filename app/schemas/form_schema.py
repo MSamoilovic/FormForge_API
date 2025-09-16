@@ -1,7 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Any, Union
 from enum import Enum
-import uuid
 
 
 class FieldType(str, Enum):
@@ -68,7 +67,7 @@ class FormField(BaseModel):
     rules: Optional[List[FormRule]] = []
 
 class FormSchema(BaseModel):
-    id: str = str(uuid.uuid4())
+    id: int
     name: str
     description: Optional[str] = None
     fields: List[FormField]
@@ -79,3 +78,9 @@ class FormSchemaCreate(BaseModel):
     description: Optional[str] = None
     fields: List[FormField]
     rules: Optional[List[FormRule]] = None
+
+class FormaSchemaResponse(FormSchema):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
