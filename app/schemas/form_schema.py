@@ -79,7 +79,7 @@ class FormSchemaCreate(BaseModel):
     fields: List[FormField]
     rules: Optional[List[FormRule]] = None
 
-class FormaSchemaResponse(FormSchema):
+class FormSchemaResponse(FormSchema):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
