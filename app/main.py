@@ -27,23 +27,38 @@ app.add_middleware(
 
 @app.post("/api/forms", response_model=FormSchemaResponse, status_code=201)
 def create_form_endpoint(form: FormSchemaCreate, db: Session = Depends(get_db)):
-    """ Kreira novu formu i čuva je u bazi. """
+    """ Creates a new form and saves it in the database. """
     created_form = form_service.create_form(db, form_data=form)
     return created_form
 
 
 @app.get("/api/forms", response_model=List[FormSchemaResponse])
 def get_forms_endpoint(db: Session = Depends(get_db)):
-    """ Vraća listu SVIH sačuvanih formi. """
+    """ Returns the list of all available forms. """
     forms = form_service.get_forms(db=db)
     return forms
 
 
 @app.get("/api/forms/{form_id}", response_model=FormSchemaResponse)
 def get_form_endpoint(form_id: int, db: Session = Depends(get_db)):
-    """ Vraća JEDNU specifičnu formu na osnovu njenog ID-a. """
+    """ Returns Form with provided id. """
     db_form = form_service.get_form(db=db, form_id=form_id)
     if db_form is None:
         raise HTTPException(status_code=404, detail="Form not found")
     return db_form
 
+@app.put("/api/forms/{form_id}", response_model=FormSchemaResponse, status_code=200)
+def update_form_endpoint(form_id: int, form: FormSchemaCreate, db: Session = Depends(get_db)):
+    """ Updates an existing form with the provided data. """
+    updated_form = form_service.update_form(db=db, form_id=form_id, form_data=form)
+    if updated_form is None:
+        raise HTTPException(status_code=404, detail="Form not found")
+    return updated_form
+
+@app.delete("/api/forms/{form_id}", status_code=204)
+def delete_form_endpoint(form_id: int, db: Session = Depends(get_db)):
+    """ Deletes the form with the provided id. """
+    success = form_service.delete_form(db=db, form_id=form_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Form not found")
+    return success

@@ -16,3 +16,31 @@ def get_form(db: Session, form_id: int) -> Form | None:
 
 def get_forms(db: Session) -> List[Form]:
     return db.query(Form).all()
+
+def update_form(db: Session, form_id: int, form_data: FormSchemaCreate) -> Form | None:
+    """
+    Finds and updates an existing form with the provided data.
+    """
+    db_form = get_form(db, form_id)
+    if not db_form:
+        return None
+
+    # model_dump() konvertuje Pydantic model u rečnik
+    update_data = form_data.model_dump(exclude_unset=True)
+
+    # Prolazimo kroz rečnik i ažuriramo svaki atribut
+    for key, value in update_data.items():
+        setattr(db_form, key, value)
+
+    db.add(db_form)
+    db.commit()
+    db.refresh(db_form)
+    return db_form
+
+def delete_form(db: Session, form_id: int) -> bool:
+    db_form = get_form(db, form_id)
+    if not db_form:
+        return False
+    db.delete(db_form)
+    db.commit()
+    return True
