@@ -1,43 +1,33 @@
-from typing import List
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 
-from app.schemas.form_schema import FormSchemaCreate, FormSchemaResponse
-from app.services import form_service
-from app.db.session import get_db, engine
-from app.db import base
+from app.api.v1.forms import router as form_routes
 
-base.Base.metadata.create_all(bind=engine)
+
+from app.domain.models.form import Base
+from app.infrastructure.database.session import engine
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FormForge API")
 
-origins = ["http://localhost:4500"]
+# --- CORS Middleware ---
+# Omogućava našoj Angular aplikaciji da komunicira sa ovim backend-om
+origins = [
+    "http://localhost:4500",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"], 
+    allow_headers=["*"], 
 )
 
-# --- API Endpoints ---
-
-@app.post("/api/forms", response_model=FormSchemaResponse, status_code=201)
-def create_form_endpoint(form: FormSchemaCreate, db: Session = Depends(get_db)):
-    print(f"--- Saving form '{form.name}' to the database ---")
-    created_form = form_service.create_form(db, form_data=form)
-    return created_form
+app.include_router(form_routes, prefix="/api/forms", tags=["Forms"])
 
 
-@app.get("/api/forms", response_model=List[FormSchemaResponse], status_code=200)
-def get_all_forms(db: Session = Depends(get_db)):
-    return form_service.get_forms(db=db)
-
-
-@app.get("/api/forms/{form_id}",response_model=FormSchemaResponse, status_code=200)
-def get_form_by_id(form_id: int, db: Session = Depends(get_db)):
-    form = form_service.get_form(db, form_id=form_id)
-    return form
-
-
+@app.get("/api/health")
+def read_root():
+    """ Proverava da li je API živ. """
+    return {"status": "ok"}
