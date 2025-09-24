@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, JSON, Integer
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -10,4 +10,6 @@ class Form(Base):
     description = Column(String, nullable=True)
     fields = Column(JSON, nullable=False)
     rules = Column(JSON, nullable=True, default=[])
+
+    submissions = relationship("Submission", back_populates="form")
     
