@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.forms import router as form_routes
+from app.api.v1.submissions import router as submission_routes
 
 
 from app.domain.models.form import Base
@@ -12,7 +13,6 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="FormForge API")
 
 # --- CORS Middleware ---
-# Omogućava našoj Angular aplikaciji da komunicira sa ovim backend-om
 origins = [
     "http://localhost:4500",
 ]
@@ -25,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(form_routes, prefix="/api/forms", tags=["Forms"])
+app.include_router(submission_routes, prefix="/api/submissions", tags=["Submissions"])
 
 
 @app.get("/api/health")
