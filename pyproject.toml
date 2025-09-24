@@ -5,6 +5,13 @@ description = "Backend Service for FormForge"
 authors = ["Marko Samoilovic <msamoilovic@gmail.com>"]
 readme = "README.md"
 
+packages = [
+    { include = "app" }
+]
+
+[tool.poetry.scripts]
+dev = "scripts:run_dev"
+
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "^0.116.1"
