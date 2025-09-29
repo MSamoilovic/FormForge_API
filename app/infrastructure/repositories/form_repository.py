@@ -11,7 +11,7 @@ class FormRepository(IFormRepository):
     def get_by_id(self, form_id: int) -> Optional[Form]:
         return self.db.query(Form).filter(Form.id == form_id).first()
 
-    def get_all(self) -> List[Form]:
+    def get_all(self) -> list[type[Form]]:
         return self.db.query(Form).all()
 
     def create(self, form_data: FormSchemaCreate) -> Form:

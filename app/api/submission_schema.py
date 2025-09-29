@@ -2,10 +2,10 @@ from typing import Any, Dict
 from pydantic import BaseModel, ConfigDict
 
 
-class SubmissionsCreate(BaseModel):
+class SubmissionCreate(BaseModel):
     data: Dict[str, Any]  
 
-class SubmissionResponse(SubmissionsCreate):
+class SubmissionResponse(SubmissionCreate):
     id: int
     submitted_at: str
     form_id: int
