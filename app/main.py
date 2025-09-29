@@ -24,6 +24,7 @@ app.add_middleware(
     allow_headers=["*"], 
 )
 
+
 app.include_router(form_routes, prefix="/api/forms", tags=["Forms"])
 app.include_router(submission_routes, prefix="/api/submissions", tags=["Submissions"])
 

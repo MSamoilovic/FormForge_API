@@ -5,6 +5,13 @@ description = "Backend Service for FormForge"
 authors = ["Marko Samoilovic <msamoilovic@gmail.com>"]
 readme = "README.md"
 
+packages = [
+    { include = "app" }
+]
+
+[tool.poetry.scripts]
+dev = "scripts:run_dev"
+
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "^0.116.1"
@@ -13,6 +20,7 @@ sqlalchemy = "^2.0.43"
 psycopg2-binary = "^2.9.10"
 alembic = "^1.16.5"
 pydantic-settings = "^2.10.1"
+python-dotenv = "^1.1.1"
 
 
 [build-system]
