@@ -1,5 +1,5 @@
 FormForge API
-Introduction
+<h2>Introduction</h2>
 FormForge API is the backend service powering the FormForge application, a dynamic form builder with a powerful rule engine. This API is responsible for managing form schemas, handling user submissions, and providing data for analytics and integrations.
 
 Built with Python and FastAPI, the project follows the principles of Clean Architecture to ensure a high degree of maintainability, testability, and separation of concerns.
