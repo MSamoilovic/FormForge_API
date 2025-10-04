@@ -29,12 +29,12 @@ def create_submission_for_form(
     return service.create_submission(form_id=form_id, submission_data=submission)
 
 @router.get("/{form_id}", response_model=List[SubmissionResponse])
-def read_submissions_for_form(
+async def read_submissions_for_form(
     form_id: int,
     service: SubmissionService = Depends(get_submission_service)
 ):
     
-    return service.get_submissions_by_form_id(form_id)
+    return await service.get_submissions_by_form_id(form_id)
 
 @router.get("/{form_id}/export", response_class=StreamingResponse)
 async def export_form_submissions(
