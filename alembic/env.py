@@ -12,11 +12,10 @@ sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..'
 dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
-from app.domain.models.form import Base as FormBase
-from app.domain.models.submission import Base as SubmissionBase
+from app.domain.models.base import Base
 
+target_metadata = Base.metadata
 
-# Ovo je Alembic Config objekat
 config = context.config
 
 db_url = os.getenv('DATABASE_URL')
@@ -25,11 +24,8 @@ if not db_url:
 config.set_main_option('sqlalchemy.url', db_url)
 
 
-
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-target_metadata = [FormBase.metadata, SubmissionBase.metadata]
 
 
 def run_migrations_offline() -> None:

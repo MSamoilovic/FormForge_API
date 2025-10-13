@@ -66,18 +66,32 @@ class FormField(BaseModel):
     validations: Optional[List[Any]] = []
     rules: Optional[List[FormRule]] = []
 
+class ThemeSettings(BaseModel):
+    primaryColor: Optional[str] = None
+    backgroundColor: Optional[str] = None
+    textColor: Optional[str] = None
+    fontFamily: Optional[str] = None
+    borderRadius: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 class FormSchema(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
     fields: List[FormField]
     rules: Optional[List[FormRule]] = []
+    theme: Optional[ThemeSettings] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 class FormSchemaCreate(BaseModel):
     name: str
     description: Optional[str] = None
     fields: List[FormField]
     rules: Optional[List[FormRule]] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 class FormSchemaResponse(FormSchema):
     id: int

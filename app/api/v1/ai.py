@@ -20,15 +20,11 @@ def generate_form_from_text(
         request: PromptRequest,
         ai_service: AIService = Depends(AIService)
 ):
-    """
-    Prima tekstualni upit, generiše FormSchema JSON pomoću AI
-    i validira ga pre slanja.
-    """
-    # 1. Dobijamo JSON šemu našeg Pydantic modela
+
     global ai_response_str
     form_schema_definition = json.dumps(FormSchemaCreate.model_json_schema(), indent=2)
 
-    # 2. Kreiramo detaljan "System Prompt"
+
     system_prompt = f"""
     You are an expert assistant for creating web forms. Your task is to convert a user's text description into a valid JSON object that strictly follows the provided JSON schema.
     The JSON output MUST conform to this schema:
@@ -45,6 +41,7 @@ def generate_form_from_text(
     """
 
     try:
+
         ai_response_str = ai_service.generate_json_from_prompt(
             system_prompt=system_prompt,
             user_prompt=request.prompt
