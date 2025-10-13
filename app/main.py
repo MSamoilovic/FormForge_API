@@ -6,10 +6,9 @@ from app.api.v1.submissions import router as submission_routes
 from app.api.v1.ai import  router as ai_routes
 
 
-from app.domain.models.form import Base
+from app.domain.models.base import Base
 from app.infrastructure.database.session import engine
 
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FormForge API")
 
