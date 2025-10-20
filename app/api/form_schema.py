@@ -90,6 +90,7 @@ class FormSchemaCreate(BaseModel):
     description: Optional[str] = None
     fields: List[FormField]
     rules: Optional[List[FormRule]] = None
+    theme: Optional[ThemeSettings] = None
 
     model_config = ConfigDict(from_attributes=True)
 
