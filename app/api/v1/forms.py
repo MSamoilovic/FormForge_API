@@ -22,15 +22,15 @@ def read_form(form_id: int, service: FormService = Depends(get_form_service)):
     return db_form
 
 
-@router.put("/api/forms/{form_id}", response_model=FormSchemaResponse, status_code=200)
-def update_form_endpoint(form_id: int, form: FormSchemaCreate, service: FormService = Depends(get_form_service)):
+@router.put("/{form_id}", response_model=FormSchemaResponse, status_code=200)
+def update_form(form_id: int, form: FormSchemaCreate, service: FormService = Depends(get_form_service)):
     """ Updates an existing form with the provided data. """
     updated_form = service.update_form(form_id=form_id, form_data=form)
     if updated_form is None:
         raise HTTPException(status_code=404, detail="Form not found")
     return updated_form
 
-@router.delete("/api/forms/{form_id}", status_code=204)
+@router.delete("/{form_id}", status_code=204)
 def delete_form_endpoint(form_id: int, service: FormService = Depends(get_form_service)):
     """ Deletes the form with the provided id. """
     success = service.delete_form(form_id=form_id)
