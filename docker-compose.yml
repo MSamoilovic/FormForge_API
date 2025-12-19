@@ -6,7 +6,11 @@ services:
     image: postgres:16-alpine
     container_name: formforge_db
     restart: unless-stopped
+    # ✅ Koristi env_file za sakrivanje credentials
+    env_file:
+      - .env
     environment:
+      # Mapiranje iz .env fajla u PostgreSQL env vars
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-formforge_db}
@@ -29,11 +33,11 @@ services:
       dockerfile: Dockerfile
     container_name: formforge_api
     restart: unless-stopped
-    environment:
-      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-formforge_db}
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      RUN_SEED: ${RUN_SEED:-false}
-      CLEAR_DATA: ${CLEAR_DATA:-false}
+    # ✅ Koristi env_file umesto environment za bolje sakrivanje secrets
+    env_file:
+      - .env
+    # Ove environment varijable će biti konstruisane iz .env fajla
+    # Database credentials ostaju sakriveni u .env fajlu
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
@@ -51,6 +55,9 @@ services:
     image: dpage/pgadmin4:latest
     container_name: formforge_pgadmin
     restart: unless-stopped
+    # ✅ Koristi env_file
+    env_file:
+      - .env
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@formforge.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}

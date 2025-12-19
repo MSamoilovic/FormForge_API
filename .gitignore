@@ -1,36 +1,77 @@
-
-pycache/
-*.pyc
-*.pyo
-*.pyd
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual Environment
-.venv/
+venv/
+env/
+ENV/
+.venv
 
-
-poetry.lock
-
-
-.env
-.env.*
-!/.env.example # Dozvoljavamo samo primer .env fajla
-
-_pycache_/
-
-.idea/
+# IDEs
 .vscode/
+.idea/
 *.swp
+*.swo
+*~
 
-.pytest_cache/
-.coverage
-htmlcov/
+# Environment Variables - KRITIČNO!
+.env
+.env.local
+.env.*.local
+.env.production
 
+# Database
+*.db
+*.sqlite3
 
-/dist/
-/build/
-*.egg-info/
+# Logs
+*.log
+logs/
 
+# OS
 .DS_Store
 Thumbs.db
 
-/Docs
+# Docker volumes (local development)
+postgres_data/
+pgadmin_data/
+redis_data/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Alembic
+# Keep migrations but ignore temp files
+alembic/versions/*.pyc
+
+# Uploads (if using local storage)
+uploads/
+tmp/
+temp/
+
+# Backups
+backups/
+*.sql
+*.dump
