@@ -5,11 +5,11 @@ from pydantic import computed_field
 
 class Settings(BaseSettings):
     # Database Configuration (individual components for security)
-    DB_USER: str = "postgres"
-    DB_PASSWORD: str = "postgres"
-    DB_HOST: str = "db"
-    DB_PORT: int = 5432
-    DB_NAME: str = "formforge_db"
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
     
     # API Keys
     GEMINI_API_KEY: str
@@ -21,10 +21,6 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def DATABASE_URL(self) -> str:
-        """
-        Konstruiše DATABASE_URL iz komponenti.
-        Password ostaje sakriven u .env fajlu.
-        """
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
     
     model_config = SettingsConfigDict(
