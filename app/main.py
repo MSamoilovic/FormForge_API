@@ -14,7 +14,14 @@ app = FastAPI(title="FormForge API")
 
 # --- CORS Middleware ---
 origins = [
+    "http://localhost:4200",  # Angular default port
+    "http://127.0.0.1:4200",
     "http://localhost:4500",
+    "http://localhost:8001",
+    "http://127.0.0.1:4500",
+    "http://127.0.0.1:8001",
+    "http://localhost:3000",  # Common React dev port
+    "http://127.0.0.1:3000",
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +35,18 @@ app.add_middleware(
 app.include_router(form_routes, prefix="/api/forms", tags=["Forms"])
 app.include_router(submission_routes, prefix="/api/submissions", tags=["Submissions"])
 app.include_router(ai_routes, prefix="/api/ai", tags=["AI"])
+
+# Add explicit routes without trailing slash to avoid redirects that break CORS
+from typing import List
+from app.api.form_schema import FormSchemaResponse
+from app.api.deps import get_form_service
+from app.application.services.form_service import FormService
+from fastapi import Depends
+
+@app.get("/api/forms", response_model=List[FormSchemaResponse], include_in_schema=False)
+def read_forms_no_slash(service: FormService = Depends(get_form_service)):
+    """Handle /api/forms without trailing slash to avoid CORS issues with redirects"""
+    return service.get_all_forms()
 
 
 @app.get("/api/health")

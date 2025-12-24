@@ -13,14 +13,14 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 from app.domain.models.base import Base
+from app.core.config import settings
 
 target_metadata = Base.metadata
 
 config = context.config
 
-db_url = os.getenv('DATABASE_URL')
-if not db_url:
-    raise ValueError("DATABASE_URL nije postavljen u .env fajlu!")
+# Use Settings class to get DATABASE_URL (constructed from individual DB env vars)
+db_url = settings.DATABASE_URL
 config.set_main_option('sqlalchemy.url', db_url)
 
 

@@ -8,21 +8,71 @@ Create Date: 2025-09-29 15:48:00
 from alembic import op
 import sqlalchemy as sa
 import datetime
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '<generisani_hash_iz_komande>'  # Zameni sa pravim ID-jem
-down_revision = None
+revision = '8295573d27c7'
+down_revision = '0001_initial'
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
+    # First, create the forms that we need for the submissions
+    # Note: theme column is added in the next migration, so we don't include it here
+    forms_table = sa.table('forms',
+                          sa.column('id', sa.Integer),
+                          sa.column('name', sa.String),
+                          sa.column('description', sa.String),
+                          sa.column('fields', postgresql.JSON),
+                          sa.column('rules', postgresql.JSON))
+    
+    # Insert forms if they don't exist
+    op.bulk_insert(forms_table,
+                   [
+                       {
+                           'id': 2,
+                           'name': 'Jednostavna Kontakt Forma',
+                           'description': 'Kontakt forma sa osnovnim poljima',
+                           'fields': [
+                               {'id': 'ime_prezime', 'type': 'text', 'label': 'Ime i Prezime', 'required': True},
+                               {'id': 'email_adresa', 'type': 'email', 'label': 'Email Adresa', 'required': True},
+                               {'id': 'poruka', 'type': 'textarea', 'label': 'Poruka', 'required': True}
+                           ],
+                           'rules': []
+                       },
+                       {
+                           'id': 4,
+                           'name': 'Forma sa Pravilima',
+                           'description': 'Demo forma sa conditional logic',
+                           'fields': [
+                               {'id': 'tip_korisnika', 'type': 'radio', 'label': 'Tip Korisnika', 'required': True,
+                                'options': [{'value': 'fizicko', 'label': 'Fizičko lice'}, {'value': 'pravno', 'label': 'Pravno lice'}]},
+                               {'id': 'pib_firme', 'type': 'text', 'label': 'PIB Firme', 'required': False},
+                               {'id': 'maticni_broj', 'type': 'text', 'label': 'Matični Broj', 'required': False}
+                           ],
+                           'rules': []
+                       },
+                       {
+                           'id': 5,
+                           'name': 'Anketa o Zadovoljstvu',
+                           'description': 'Anketa za prikupljanje feedback-a',
+                           'fields': [
+                               {'id': 'ocena_usluge', 'type': 'number', 'label': 'Ocena Usluge', 'required': True, 'min': 1, 'max': 5},
+                               {'id': 'dodatni_komentar', 'type': 'textarea', 'label': 'Dodatni Komentar', 'required': False},
+                               {'id': 'dozvola_kontakt', 'type': 'checkbox', 'label': 'Dozvola za Kontakt', 'required': False},
+                               {'id': 'ime', 'type': 'text', 'label': 'Ime', 'required': True}
+                           ],
+                           'rules': []
+                       }
+                   ])
+
     # Definišemo strukturu tabele sa kojom radimo
     submissions_table = sa.table('submissions',
                                  sa.column('id', sa.Integer),
                                  sa.column('form_id', sa.Integer),
                                  sa.column('submitted_at', sa.DateTime),
-                                 sa.column('data', sa.JSON)
+                                 sa.column('data', postgresql.JSON)
                                  )
 
     # Koristimo bulk_insert da dodamo više redova odjednom
@@ -96,3 +146,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     # Logika za brisanje ovih podataka ako želimo da "poništimo" migraciju
     op.execute("DELETE FROM submissions WHERE form_id IN (2, 4, 5)")
+    op.execute("DELETE FROM forms WHERE id IN (2, 4, 5)")

@@ -10,6 +10,10 @@ class FieldType(str, Enum):
     RADIO = "radio"
     CHECKBOX = "checkbox"
     DATE = "date"
+    EMAIL = "email"
+    TEXTAREA = "textarea"
+    TEL = "tel"
+    PASSWORD = "password"
 
 class RuleConditionOperator(str, Enum):
     EQUALS = "equals"

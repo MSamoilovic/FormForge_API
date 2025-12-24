@@ -4,17 +4,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
 
 class Settings(BaseSettings):
-    # Database Configuration (individual components for security)
     DB_USER: str
     DB_PASSWORD: str
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
-    
-    # API Keys
+
     GEMINI_API_KEY: str
-    
-    # Optional: Seed configuration
+
     RUN_SEED: bool = False
     CLEAR_DATA: bool = False
     
