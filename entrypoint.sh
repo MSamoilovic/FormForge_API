@@ -13,7 +13,7 @@ echo "✅ Database is ready!"
 
 # Pokreni Alembic migracije
 echo "🔄 Running database migrations..."
-poetry run alembic upgrade head
+uv run alembic upgrade head
 echo "✅ Migrations completed!"
 
 # Proveri da li treba pokrenuti seed
@@ -22,9 +22,9 @@ if [ "$RUN_SEED" = "true" ]; then
     
     if [ "$CLEAR_DATA" = "true" ]; then
         echo "⚠️  Clearing existing data..."
-        poetry run python -m app.database.seed --clear
+        uv run python -m app.database.seed --clear
     else
-        poetry run python -m app.database.seed
+        uv run python -m app.database.seed
     fi
     
     echo "✅ Seed completed!"
@@ -32,4 +32,3 @@ fi
 
 echo "🎯 Starting application..."
 exec "$@"
-

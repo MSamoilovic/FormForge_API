@@ -50,3 +50,5 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_forms_id'), table_name='forms')
     op.drop_table('forms')
 
+
+

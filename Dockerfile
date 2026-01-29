@@ -14,20 +14,20 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Instaliraj Poetry
-RUN pip install --no-cache-dir poetry==1.7.1
+# Instaliraj uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Kopiraj Poetry konfiguraciju
-COPY pyproject.toml poetry.lock ./
+# Kopiraj uv konfiguraciju
+COPY pyproject.toml uv.lock* ./
 
-# Konfiguriši Poetry da ne kreira virtuelno okruženje (već smo u containeru)
-RUN poetry config virtualenvs.create false
-
-# Instaliraj dependencies
-RUN poetry install --no-interaction --no-ansi --no-root
+# Instaliraj dependencies (uv sync instalira sve iz uv.lock)
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Kopiraj aplikaciju
 COPY . .
+
+# Instaliraj projekat
+RUN uv sync --frozen --no-dev
 
 # Kreiraj non-root korisnika za bezbednost
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
@@ -40,5 +40,4 @@ EXPOSE 8000
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Default komanda za pokretanje aplikacije
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -48,7 +48,7 @@ services:
       - .:/app
     networks:
       - formforge-network
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # PgAdmin za administraciju baze (opciono)
   pgadmin:

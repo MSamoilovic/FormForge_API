@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional, Any, Union
+from typing import List, Optional, Any, Union, Literal
 from enum import Enum
 
 
@@ -35,19 +37,15 @@ class FieldOption(BaseModel):
     value: Any
 
 
-class RuleConditionGroup(BaseModel):
-    pass
-
 class RuleCondition(BaseModel):
     fieldId: str
     operator: RuleConditionOperator
     value: Any
 
-RuleConditionGroup.model_rebuild(force=True)
-RuleConditionGroup.model_fields.update({
-    'operator': str, # 'and' or 'or'
-    'conditions': List[Union[RuleCondition, RuleConditionGroup]]
-})
+
+class RuleConditionGroup(BaseModel):
+    operator: Literal["and", "or"]
+    conditions: List[Union[RuleCondition, RuleConditionGroup]]
 
 
 class RuleAction(BaseModel):
