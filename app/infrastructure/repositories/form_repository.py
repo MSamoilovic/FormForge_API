@@ -4,6 +4,7 @@ from app.application.interfaces.form_repository import IFormRepository
 from app.domain.models.form import Form
 from app.api.form_schema import FormSchemaCreate
 
+
 class FormRepository(IFormRepository):
     def __init__(self, db_session: Session):
         self.db = db_session
@@ -11,11 +12,18 @@ class FormRepository(IFormRepository):
     def get_by_id(self, form_id: int) -> Optional[Form]:
         return self.db.query(Form).filter(Form.id == form_id).first()
 
-    def get_all(self) -> list[type[Form]]:
+    def get_all(self) -> List[Form]:
         return self.db.query(Form).all()
 
-    def create(self, form_data: FormSchemaCreate) -> Form:
-        db_form = Form(**form_data.model_dump())
+    def get_by_owner(self, owner_id: int) -> List[Form]:
+        """Vraća sve forme koje pripadaju određenom korisniku."""
+        return self.db.query(Form).filter(Form.owner_id == owner_id).all()
+
+    def create(self, form_data: FormSchemaCreate, owner_id: Optional[int] = None) -> Form:
+        db_form = Form(
+            **form_data.model_dump(),
+            owner_id=owner_id
+        )
         self.db.add(db_form)
         self.db.commit()
         self.db.refresh(db_form)
@@ -33,10 +41,11 @@ class FormRepository(IFormRepository):
         self.db.refresh(db_form)
         return db_form
 
-    def delete(self, form_id: int) -> Optional[Form]:
+    def delete(self, form_id: int) -> bool:
+        """Briše formu i vraća True ako je uspešno."""
         db_form = self.get_by_id(form_id)
         if not db_form:
-            return None
+            return False
         self.db.delete(db_form)
         self.db.commit()
-        return db_form
+        return True

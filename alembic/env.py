@@ -13,6 +13,11 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 from app.domain.models.base import Base
+from app.domain.models.form import Form
+from app.domain.models.submission import Submission
+from app.domain.models.user import User
+from app.domain.models.organization import Organization
+from app.domain.models.api_key import APIKey
 from app.core.config import settings
 
 target_metadata = Base.metadata

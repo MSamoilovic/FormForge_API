@@ -1,17 +1,26 @@
-import os
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
 
+
 class Settings(BaseSettings):
+    # Database
     DB_USER: str
     DB_PASSWORD: str
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
 
+    # External APIs
     GEMINI_API_KEY: str
 
+    # JWT Authentication
+    SECRET_KEY: str = "your-super-secret-key-change-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # App settings
     RUN_SEED: bool = False
     CLEAR_DATA: bool = False
     
@@ -24,5 +33,6 @@ class Settings(BaseSettings):
         env_file=".env",
         extra="ignore"  # Ignoriši dodatna polja iz .env
     )
+
 
 settings = Settings()

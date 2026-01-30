@@ -3,14 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.forms import router as form_routes
 from app.api.v1.submissions import router as submission_routes
-from app.api.v1.ai import  router as ai_routes
-
+from app.api.v1.ai import router as ai_routes
+from app.api.v1.auth import router as auth_routes
 
 from app.domain.models.base import Base
 from app.infrastructure.database.session import engine
 
 
-app = FastAPI(title="FormForge API")
+app = FastAPI(
+    title="FormForge API",
+    description="Dynamic form builder API with AI integration and authentication",
+    version="1.0.0"
+)
 
 # --- CORS Middleware ---
 origins = [
@@ -32,6 +36,7 @@ app.add_middleware(
 )
 
 
+app.include_router(auth_routes, prefix="/api")
 app.include_router(form_routes, prefix="/api/forms", tags=["Forms"])
 app.include_router(submission_routes, prefix="/api/submissions", tags=["Submissions"])
 app.include_router(ai_routes, prefix="/api/ai", tags=["AI"])
