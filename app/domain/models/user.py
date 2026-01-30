@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Boolean, DateTime, Integer, Enum, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, Integer, ForeignKey
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -12,6 +13,14 @@ class UserRole(str, enum.Enum):
     ORG_ADMIN = "org_admin"          # Admin organizacije
     FORM_CREATOR = "form_creator"    # Može kreirati forme
     VIEWER = "viewer"                # Read-only pristup
+
+
+# Definišemo PostgreSQL enum koji koristi values (lowercase)
+userrole_enum = PgEnum(
+    'super_admin', 'org_admin', 'form_creator', 'viewer',
+    name='userrole',
+    create_type=False  # Vec smo kreirali u migraciji
+)
 
 
 class User(Base):
@@ -28,8 +37,8 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     
-    # Role
-    role = Column(Enum(UserRole), default=UserRole.FORM_CREATOR)
+    # Role - koristi PostgreSQL enum sa string vrednostima
+    role = Column(userrole_enum, default='form_creator')
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -19,12 +19,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Create userrole enum type
-    userrole_enum = sa.Enum(
-        'super_admin', 'org_admin', 'form_creator', 'viewer',
-        name='userrole'
-    )
-    userrole_enum.create(op.get_bind(), checkfirst=True)
+    # Create userrole enum type manually first
+    op.execute("CREATE TYPE userrole AS ENUM ('super_admin', 'org_admin', 'form_creator', 'viewer')")
     
     # Create organizations table
     op.create_table(
@@ -43,7 +39,10 @@ def upgrade() -> None:
     op.create_index(op.f('ix_organizations_id'), 'organizations', ['id'], unique=False)
     op.create_index(op.f('ix_organizations_slug'), 'organizations', ['slug'], unique=True)
     
-    # Create users table
+    # Create users table - use postgresql.ENUM with create_type=False since we created it above
+    from sqlalchemy.dialects import postgresql
+    userrole_enum = postgresql.ENUM('super_admin', 'org_admin', 'form_creator', 'viewer', name='userrole', create_type=False)
+    
     op.create_table(
         'users',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -130,5 +129,5 @@ def downgrade() -> None:
     op.drop_table('organizations')
     
     # Drop enum type
-    sa.Enum(name='userrole').drop(op.get_bind(), checkfirst=True)
+    op.execute("DROP TYPE IF EXISTS userrole")
 

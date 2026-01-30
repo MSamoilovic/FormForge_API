@@ -78,7 +78,7 @@ class AuthService:
             username=user_data.username,
             hashed_password=hashed_password,
             full_name=user_data.full_name,
-            role=UserRole.FORM_CREATOR,  # Default role
+            role='form_creator',  # Default role (lowercase za PostgreSQL enum)
             is_active=True,
             is_verified=False  # Treba email verifikacija
         )
