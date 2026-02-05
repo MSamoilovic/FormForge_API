@@ -103,7 +103,7 @@ class AuthService:
         Autentifikuje korisnika i vraća tokene.
         
         Args:
-            login_data: Email i password
+            login_data: Email/username i password
         
         Returns:
             UserWithTokenResponse sa tokenima
@@ -112,13 +112,16 @@ class AuthService:
             HTTPException 401: Ako su kredencijali pogrešni
             HTTPException 400: Ako je korisnik neaktivan
         """
-        # Pronađi korisnika po emailu
-        user = self.db.query(User).filter(User.email == login_data.email).first()
+        # Pronađi korisnika po emailu ILI username-u
+        login_value = login_data.login.lower()
+        user = self.db.query(User).filter(
+            (User.email == login_data.login) | (User.username == login_value)
+        ).first()
         
         if not user or not verify_password(login_data.password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password",
+                detail="Incorrect email/username or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         

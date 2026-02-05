@@ -58,14 +58,17 @@ async def register(
     "/login",
     response_model=UserWithTokenResponse,
     summary="Login user",
-    description="Authenticate user and return access and refresh tokens."
+    description="Authenticate user with email or username and return access and refresh tokens."
 )
 async def login(
     login_data: UserLogin,
     db: Session = Depends(get_db)
 ):
     """
-    Login korisnika sa email i password.
+    Login korisnika sa email/username i password.
+    
+    - **login**: Email adresa ili username
+    - **password**: Lozinka korisnika
     
     Vraća access token (kratko traje) i refresh token (dugo traje).
     """
@@ -233,4 +236,5 @@ async def revoke_api_key(
     service = AuthService(db)
     service.revoke_api_key(current_user, key_id)
     return MessageResponse(message="API key revoked successfully")
+
 

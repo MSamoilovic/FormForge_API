@@ -42,8 +42,8 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
-    """Schema za login (email + password)."""
-    email: EmailStr
+    """Schema za login (email ili username + password)."""
+    login: str = Field(..., description="Email ili username")
     password: str
 
 
@@ -163,4 +163,5 @@ class APIKeyCreatedResponse(BaseModel):
     scopes: list[str]
     expires_at: Optional[datetime] = None
     message: str = "Store this key securely. It won't be shown again."
+
 

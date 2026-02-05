@@ -15,11 +15,10 @@ class UserRole(str, enum.Enum):
     VIEWER = "viewer"                # Read-only pristup
 
 
-# Definišemo PostgreSQL enum koji koristi values (lowercase)
 userrole_enum = PgEnum(
     'super_admin', 'org_admin', 'form_creator', 'viewer',
     name='userrole',
-    create_type=False  # Vec smo kreirali u migraciji
+    create_type=False 
 )
 
 
