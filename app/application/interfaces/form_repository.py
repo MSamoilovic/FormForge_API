@@ -20,10 +20,12 @@ class IFormRepository(ABC):
 
     @abstractmethod
     def create(self, form_data: FormSchemaCreate, owner_id: Optional[int] = None) -> Form:
+        """Kreira novu formu"""
         pass
 
     @abstractmethod
     def update(self, form_id: int, form_data: FormSchemaCreate) -> Optional[Form]:
+        """Radi update vec postojece forme"""
         pass
 
     @abstractmethod

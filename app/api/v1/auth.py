@@ -2,9 +2,8 @@
 Auth API endpoints za registraciju, login, i upravljanje korisnicima.
 """
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
 
-from app.infrastructure.database.session import get_db
+from app.api.deps import get_auth_service
 from app.core.security import get_current_user
 from app.domain.models.user import User
 from app.application.services.auth_service import AuthService
@@ -40,17 +39,16 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 )
 async def register(
     user_data: UserRegister,
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Registracija novog korisnika.
-    
+
     - **email**: Validna email adresa (mora biti jedinstvena)
     - **username**: 3-50 karaktera, samo slova, brojevi i underscore
     - **password**: Min 8 karaktera, mora sadržati veliko slovo, malo slovo i broj
     - **full_name**: Opciono, puno ime korisnika
     """
-    service = AuthService(db)
     return service.register_user(user_data)
 
 
@@ -62,17 +60,16 @@ async def register(
 )
 async def login(
     login_data: UserLogin,
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Login korisnika sa email/username i password.
-    
+
     - **login**: Email adresa ili username
     - **password**: Lozinka korisnika
-    
+
     Vraća access token (kratko traje) i refresh token (dugo traje).
     """
-    service = AuthService(db)
     return service.login_user(login_data)
 
 
@@ -84,15 +81,14 @@ async def login(
 )
 async def refresh_token(
     token_data: TokenRefresh,
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Osvežavanje access tokena koristeći refresh token.
-    
+
     Koristi se kada access token istekne da se dobije novi
     bez ponovnog unosa lozinke.
     """
-    service = AuthService(db)
     return service.refresh_access_token(token_data.refresh_token)
 
 
@@ -126,16 +122,15 @@ async def get_me(
 async def update_me(
     update_data: UserUpdate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Ažurira profil trenutnog korisnika.
-    
+
     Može se promeniti:
     - **full_name**: Puno ime
     - **username**: Korisničko ime (mora biti jedinstveno)
     """
-    service = AuthService(db)
     return service.update_profile(
         user=current_user,
         full_name=update_data.full_name,
@@ -152,15 +147,14 @@ async def update_me(
 async def change_password(
     password_data: PasswordChange,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Promena lozinke trenutnog korisnika.
-    
+
     - **old_password**: Trenutna lozinka za verifikaciju
     - **new_password**: Nova lozinka (min 8 karaktera, mora sadržati veliko slovo, malo slovo i broj)
     """
-    service = AuthService(db)
     service.change_password(
         user=current_user,
         old_password=password_data.old_password,
@@ -183,18 +177,17 @@ async def change_password(
 async def create_api_key(
     key_data: APIKeyCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Kreira novi API ključ za programatski pristup.
-    
+
     ⚠️ **VAŽNO**: Ključ se prikazuje samo jednom! Sačuvajte ga na sigurno mesto.
-    
+
     - **name**: Opis za šta se koristi ključ
     - **scopes**: Lista dozvola (read, write, delete)
     - **expires_in_days**: Opciono, koliko dana važi ključ (1-365)
     """
-    service = AuthService(db)
     return service.create_api_key(current_user, key_data)
 
 
@@ -206,14 +199,13 @@ async def create_api_key(
 )
 async def list_api_keys(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Lista svih API ključeva trenutnog korisnika.
-    
+
     Ne prikazuje same ključeve, samo metapodatke.
     """
-    service = AuthService(db)
     return service.list_api_keys(current_user)
 
 
@@ -226,14 +218,13 @@ async def list_api_keys(
 async def revoke_api_key(
     key_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
     """
     Deaktivira API ključ.
-    
+
     Deaktivirani ključ više ne može da se koristi za autentifikaciju.
     """
-    service = AuthService(db)
     service.revoke_api_key(current_user, key_id)
     return MessageResponse(message="API key revoked successfully")
 

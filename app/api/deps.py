@@ -7,6 +7,9 @@ from app.infrastructure.database.session import get_db
 from app.infrastructure.repositories.form_repository import FormRepository
 from app.application.services.form_service import FormService
 from app.application.interfaces.form_repository import IFormRepository
+from app.application.interfaces.user_repository import IUserRepository
+from app.infrastructure.repositories.user_repository import UserRepository
+from app.application.services.auth_service import AuthService
 
 
 def get_form_repository(db: Session = Depends(get_db)) -> IFormRepository:
@@ -20,3 +23,9 @@ def get_submission_repository(db: Session = Depends(get_db)) -> ISubmissionRepos
 
 def get_submission_service(repo: ISubmissionRepository = Depends(get_submission_repository)) -> SubmissionService:
     return SubmissionService(repo)
+
+def get_user_repository(db: Session = Depends(get_db)) -> IUserRepository:
+    return UserRepository(db)
+
+def get_auth_service(repo: IUserRepository = Depends(get_user_repository)) -> AuthService:
+    return AuthService(repo)
