@@ -16,17 +16,17 @@ from app.api.submission_schema import SubmissionResponse
 router = APIRouter()
 
 @router.post("/{form_id}/submissions", response_model=SubmissionResponse, status_code=status.HTTP_201_CREATED)
-def create_submission_for_form(
+async def create_submission_for_form(
     form_id: int,
     submission: SubmissionCreate,
     service: SubmissionService = Depends(get_submission_service),
     form_service: FormService = Depends(get_form_service)
 ):
-    db_form = form_service.get_form_by_id(form_id)
+    db_form = await form_service.get_form_by_id(form_id)
     if not db_form:
         raise HTTPException(status_code=404, detail="Form not found")
-        
-    return service.create_submission(form_id=form_id, submission_data=submission)
+
+    return await service.create_submission(form_id=form_id, submission_data=submission)
 
 @router.get("/{form_id}", response_model=List[SubmissionResponse])
 async def read_submissions_for_form(

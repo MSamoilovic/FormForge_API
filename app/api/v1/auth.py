@@ -49,7 +49,7 @@ async def register(
     - **password**: Min 8 karaktera, mora sadržati veliko slovo, malo slovo i broj
     - **full_name**: Opciono, puno ime korisnika
     """
-    return service.register_user(user_data)
+    return await service.register_user(user_data)
 
 
 @router.post(
@@ -70,7 +70,7 @@ async def login(
 
     Vraća access token (kratko traje) i refresh token (dugo traje).
     """
-    return service.login_user(login_data)
+    return await service.login_user(login_data)
 
 
 @router.post(
@@ -89,7 +89,7 @@ async def refresh_token(
     Koristi se kada access token istekne da se dobije novi
     bez ponovnog unosa lozinke.
     """
-    return service.refresh_access_token(token_data.refresh_token)
+    return await service.refresh_access_token(token_data.refresh_token)
 
 
 # =============================================================================
@@ -107,7 +107,7 @@ async def get_me(
 ):
     """
     Dohvata informacije o trenutno ulogovanom korisniku.
-    
+
     Zahteva validan access token u Authorization headeru.
     """
     return current_user
@@ -131,7 +131,7 @@ async def update_me(
     - **full_name**: Puno ime
     - **username**: Korisničko ime (mora biti jedinstveno)
     """
-    return service.update_profile(
+    return await service.update_profile(
         user=current_user,
         full_name=update_data.full_name,
         username=update_data.username
@@ -155,7 +155,7 @@ async def change_password(
     - **old_password**: Trenutna lozinka za verifikaciju
     - **new_password**: Nova lozinka (min 8 karaktera, mora sadržati veliko slovo, malo slovo i broj)
     """
-    service.change_password(
+    await service.change_password(
         user=current_user,
         old_password=password_data.old_password,
         new_password=password_data.new_password
@@ -188,7 +188,7 @@ async def create_api_key(
     - **scopes**: Lista dozvola (read, write, delete)
     - **expires_in_days**: Opciono, koliko dana važi ključ (1-365)
     """
-    return service.create_api_key(current_user, key_data)
+    return await service.create_api_key(current_user, key_data)
 
 
 @router.get(
@@ -206,7 +206,7 @@ async def list_api_keys(
 
     Ne prikazuje same ključeve, samo metapodatke.
     """
-    return service.list_api_keys(current_user)
+    return await service.list_api_keys(current_user)
 
 
 @router.delete(
@@ -225,7 +225,5 @@ async def revoke_api_key(
 
     Deaktivirani ključ više ne može da se koristi za autentifikaciju.
     """
-    service.revoke_api_key(current_user, key_id)
+    await service.revoke_api_key(current_user, key_id)
     return MessageResponse(message="API key revoked successfully")
-
-

@@ -33,6 +33,8 @@ services:
 
     env_file:
       - .env
+    environment:
+      DB_HOST: db
 
     ports:
       - "${API_PORT:-8000}:8000"

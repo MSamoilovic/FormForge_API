@@ -51,9 +51,9 @@ from app.application.services.form_service import FormService
 from fastapi import Depends
 
 @app.get("/api/forms", response_model=List[FormSchemaResponse], include_in_schema=False)
-def read_forms_no_slash(service: FormService = Depends(get_form_service)):
+async def read_forms_no_slash(service: FormService = Depends(get_form_service)):
     """Handle /api/forms without trailing slash to avoid CORS issues with redirects"""
-    return service.get_all_forms()
+    return await service.get_all_forms()
 
 
 @app.get("/api/health")

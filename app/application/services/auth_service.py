@@ -33,14 +33,14 @@ class AuthService:
     # User Registration & Login
     # =========================================================================
 
-    def register_user(self, user_data: UserRegister) -> UserWithTokenResponse:
-        if self.user_repo.get_by_email(user_data.email):
+    async def register_user(self, user_data: UserRegister) -> UserWithTokenResponse:
+        if await self.user_repo.get_by_email(user_data.email):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
             )
 
-        if self.user_repo.get_by_username(user_data.username):
+        if await self.user_repo.get_by_username(user_data.username):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username already taken"
@@ -55,7 +55,7 @@ class AuthService:
             is_active=True,
             is_verified=False
         )
-        new_user = self.user_repo.create(new_user)
+        new_user = await self.user_repo.create(new_user)
 
         access_token = create_access_token(data={"sub": str(new_user.id)})
         refresh_token = create_refresh_token(data={"sub": str(new_user.id)})
@@ -67,8 +67,8 @@ class AuthService:
             user=UserResponse.model_validate(new_user)
         )
 
-    def login_user(self, login_data: UserLogin) -> UserWithTokenResponse:
-        user = self.user_repo.get_by_login(login_data.login)
+    async def login_user(self, login_data: UserLogin) -> UserWithTokenResponse:
+        user = await self.user_repo.get_by_login(login_data.login)
 
         if not user or not verify_password(login_data.password, user.hashed_password):
             raise HTTPException(
@@ -83,8 +83,8 @@ class AuthService:
                 detail="User account is deactivated"
             )
 
-        user.last_login = datetime.now(timezone.utc)
-        self.user_repo.save(user)
+        user.last_login = datetime.utcnow()
+        await self.user_repo.save(user)
 
         access_token = create_access_token(data={"sub": str(user.id)})
         refresh_token = create_refresh_token(data={"sub": str(user.id)})
@@ -96,7 +96,7 @@ class AuthService:
             user=UserResponse.model_validate(user)
         )
 
-    def refresh_access_token(self, refresh_token: str) -> TokenResponse:
+    async def refresh_access_token(self, refresh_token: str) -> TokenResponse:
         try:
             payload = decode_token(refresh_token)
 
@@ -107,7 +107,7 @@ class AuthService:
                 )
 
             user_id = payload.get("sub")
-            user = self.user_repo.get_by_id(int(user_id))
+            user = await self.user_repo.get_by_id(int(user_id))
 
             if not user or not user.is_active:
                 raise HTTPException(
@@ -136,7 +136,7 @@ class AuthService:
     # User Profile Management
     # =========================================================================
 
-    def change_password(self, user: User, old_password: str, new_password: str) -> bool:
+    async def change_password(self, user: User, old_password: str, new_password: str) -> bool:
         if not verify_password(old_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -144,10 +144,10 @@ class AuthService:
             )
 
         user.hashed_password = get_password_hash(new_password)
-        self.user_repo.save(user)
+        await self.user_repo.save(user)
         return True
 
-    def update_profile(
+    async def update_profile(
         self,
         user: User,
         full_name: Optional[str] = None,
@@ -157,7 +157,7 @@ class AuthService:
             user.full_name = full_name
 
         if username is not None:
-            existing = self.user_repo.get_by_username(username)
+            existing = await self.user_repo.get_by_username(username)
             if existing and existing.id != user.id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -165,13 +165,13 @@ class AuthService:
                 )
             user.username = username
 
-        return self.user_repo.save(user)
+        return await self.user_repo.save(user)
 
     # =========================================================================
     # API Key Management
     # =========================================================================
 
-    def create_api_key(self, user: User, key_data: APIKeyCreate) -> APIKeyCreatedResponse:
+    async def create_api_key(self, user: User, key_data: APIKeyCreate) -> APIKeyCreatedResponse:
         key = f"ff_{token_urlsafe(32)}"
 
         expires_at = None
@@ -185,7 +185,7 @@ class AuthService:
             scopes=key_data.scopes,
             expires_at=expires_at
         )
-        api_key = self.user_repo.create_api_key(api_key)
+        api_key = await self.user_repo.create_api_key(api_key)
 
         return APIKeyCreatedResponse(
             id=api_key.id,
@@ -195,11 +195,11 @@ class AuthService:
             expires_at=api_key.expires_at
         )
 
-    def list_api_keys(self, user: User) -> list[APIKey]:
-        return self.user_repo.get_api_keys_by_user_id(user.id)
+    async def list_api_keys(self, user: User) -> list[APIKey]:
+        return await self.user_repo.get_api_keys_by_user_id(user.id)
 
-    def revoke_api_key(self, user: User, key_id: int) -> bool:
-        api_key = self.user_repo.get_api_key_by_id(key_id)
+    async def revoke_api_key(self, user: User, key_id: int) -> bool:
+        api_key = await self.user_repo.get_api_key_by_id(key_id)
 
         if not api_key:
             raise HTTPException(
@@ -214,5 +214,5 @@ class AuthService:
             )
 
         api_key.is_active = False
-        self.user_repo.save_api_key(api_key)
+        await self.user_repo.save_api_key(api_key)
         return True
