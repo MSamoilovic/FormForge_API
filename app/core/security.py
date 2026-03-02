@@ -13,7 +13,8 @@ from jose import JWTError, jwt
 import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app.core.config import settings
 from app.infrastructure.database.session import get_db
@@ -133,7 +134,7 @@ def decode_token(token: str) -> dict:
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ) -> User:
     """
     FastAPI dependency za dobijanje trenutno ulogovanog korisnika.
@@ -168,8 +169,9 @@ async def get_current_user(
         raise credentials_exception
     
     # Dohvati korisnika iz baze
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    
+    result = await db.execute(select(User).filter(User.id == int(user_id)))
+    user = result.scalar_one_or_none()
+
     if user is None:
         raise credentials_exception
     
@@ -230,7 +232,7 @@ async def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(
         HTTPBearer(auto_error=False)
     ),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ) -> Optional[User]:
     """
     Opcioni dependency - vraća korisnika ako je ulogovan, None ako nije.
@@ -250,8 +252,9 @@ async def get_current_user_optional(
         if user_id is None:
             return None
         
-        user = db.query(User).filter(User.id == int(user_id)).first()
-        
+        result = await db.execute(select(User).filter(User.id == int(user_id)))
+        user = result.scalar_one_or_none()
+
         if user and user.is_active:
             return user
         

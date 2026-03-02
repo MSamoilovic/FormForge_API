@@ -6,9 +6,9 @@ from app.domain.models.submission import Submission
 
 
 class ISubmissionRepository(ABC):
-   
+
     @abstractmethod
-    def create(self, form_id: int, submission_data: SubmissionCreate) -> Submission:
+    async def create(self, form_id: int, submission_data: SubmissionCreate) -> Submission:
         pass
 
     @abstractmethod
@@ -16,13 +16,13 @@ class ISubmissionRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_id(self, submission_id: int) -> Optional[Submission]:
+    async def get_by_id(self, submission_id: int) -> Optional[Submission]:
         pass
 
     @abstractmethod
-    def update(self, submission_id: int, submission_data: SubmissionCreate) -> Optional[Submission]:
+    async def update(self, submission_id: int, submission_data: SubmissionCreate) -> Optional[Submission]:
         pass
 
     @abstractmethod
-    def delete(self, submission_id: int) -> Optional[Submission]:
+    async def delete(self, submission_id: int) -> Optional[Submission]:
         pass
