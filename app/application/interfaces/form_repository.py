@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from app.domain.models.form import Form
-from app.api.form_schema import FormSchemaCreate # Importovaćemo ga kasnije
+from app.api.form_schema import FormSchemaCreate
+
 
 class IFormRepository(ABC):
     @abstractmethod
@@ -13,13 +14,21 @@ class IFormRepository(ABC):
         pass
 
     @abstractmethod
-    def create(self, form_data: FormSchemaCreate) -> Form:
+    def get_by_owner(self, owner_id: int) -> List[Form]:
+        """Vraća sve forme koje pripadaju određenom korisniku."""
+        pass
+
+    @abstractmethod
+    def create(self, form_data: FormSchemaCreate, owner_id: Optional[int] = None) -> Form:
+        """Kreira novu formu"""
         pass
 
     @abstractmethod
     def update(self, form_id: int, form_data: FormSchemaCreate) -> Optional[Form]:
+        """Radi update vec postojece forme"""
         pass
 
     @abstractmethod
-    def delete(self, form_id: int) -> Optional[Form]:
+    def delete(self, form_id: int) -> bool:
+        """Briše formu i vraća True ako je uspešno, False ako forma ne postoji."""
         pass

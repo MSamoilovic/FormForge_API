@@ -37,9 +37,10 @@ Dockerfile
 docker-compose*.yml
 .dockerignore
 
-# Documentation
-*.md
-docs/
+# Documentation (keep README.md for pyproject.toml)
+CHANGELOG.md
+CONTRIBUTING.md
+Docs/
 
 # Tests
 tests/
