@@ -9,6 +9,8 @@ class Form(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String, nullable=True)
+
+    submitMessage = Column("submit_message", String, nullable=True)
     fields = Column(JSON, nullable=False)
     rules = Column(JSON, nullable=True, default=[])
     theme = Column(JSON, nullable=True)

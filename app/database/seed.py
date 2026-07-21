@@ -48,7 +48,7 @@ def seed_forms(db: Session):
                 },
                 {
                     "id": "poruka",
-                    "type": "textarea",
+                    "type": "textArea",
                     "label": "Poruka",
                     "required": True,
                     "placeholder": "Vaša poruka..."
@@ -134,7 +134,7 @@ def seed_forms(db: Session):
                 },
                 {
                     "id": "komentar",
-                    "type": "textarea",
+                    "type": "textArea",
                     "label": "Komentar",
                     "required": False,
                     "placeholder": "Podelite vaše mišljenje sa nama..."
@@ -204,34 +204,31 @@ def seed_forms(db: Session):
             ],
             rules=[
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "tip_lica",
-                        "operator": "equals",
-                        "value": "fizicko"
-                    },
-                    "target": "jmbg",
-                    "action": "show"
+                    "id": "rule-jmbg-show",
+                    "description": "Prikazi JMBG za fizicko lice",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {"fieldId": "tip_lica", "operator": "equals", "value": "fizicko"}
+                    ],
+                    "actions": [{"targetFieldId": "jmbg", "type": "show"}]
                 },
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "tip_lica",
-                        "operator": "equals",
-                        "value": "pravno"
-                    },
-                    "target": "naziv_firme",
-                    "action": "show"
+                    "id": "rule-naziv-firme-show",
+                    "description": "Prikazi naziv firme za pravno lice",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {"fieldId": "tip_lica", "operator": "equals", "value": "pravno"}
+                    ],
+                    "actions": [{"targetFieldId": "naziv_firme", "type": "show"}]
                 },
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "tip_lica",
-                        "operator": "equals",
-                        "value": "pravno"
-                    },
-                    "target": "pib",
-                    "action": "show"
+                    "id": "rule-pib-show",
+                    "description": "Prikazi PIB za pravno lice",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {"fieldId": "tip_lica", "operator": "equals", "value": "pravno"}
+                    ],
+                    "actions": [{"targetFieldId": "pib", "type": "show"}]
                 }
             ],
             theme={
@@ -265,7 +262,7 @@ def seed_forms(db: Session):
                 },
                 {
                     "id": "telefon",
-                    "type": "tel",
+                    "type": "phone",
                     "label": "Telefon",
                     "required": False
                 },
@@ -286,7 +283,7 @@ def seed_forms(db: Session):
                 },
                 {
                     "id": "dijeta_opis",
-                    "type": "textarea",
+                    "type": "textArea",
                     "label": "Opišite dijetetske zahteve",
                     "required": False,
                     "visible": False
@@ -294,14 +291,13 @@ def seed_forms(db: Session):
             ],
             rules=[
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "dijeta",
-                        "operator": "equals",
-                        "value": True
-                    },
-                    "target": "dijeta_opis",
-                    "action": "show"
+                    "id": "rule-dijeta-opis-show",
+                    "description": "Prikazi opis dijete ako je dijeta cekirana",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {"fieldId": "dijeta", "operator": "equals", "value": True}
+                    ],
+                    "actions": [{"targetFieldId": "dijeta_opis", "type": "show"}]
                 }
             ],
             theme={
