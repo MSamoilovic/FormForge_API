@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.application.interfaces.submission_repository import ISubmissionRepository
@@ -10,6 +12,7 @@ from app.application.interfaces.form_repository import IFormRepository
 from app.application.interfaces.user_repository import IUserRepository
 from app.infrastructure.repositories.user_repository import UserRepository
 from app.application.services.auth_service import AuthService
+from app.application.services.ai_service import AIService
 
 
 def get_form_repository(db: AsyncSession = Depends(get_db)) -> IFormRepository:
@@ -29,3 +32,8 @@ def get_user_repository(db: AsyncSession = Depends(get_db)) -> IUserRepository:
 
 def get_auth_service(repo: IUserRepository = Depends(get_user_repository)) -> AuthService:
     return AuthService(repo)
+
+@lru_cache
+def get_ai_service() -> AIService:
+    """AIService holds an HTTP client, so it is instantiated once and shared across requests."""
+    return AIService()

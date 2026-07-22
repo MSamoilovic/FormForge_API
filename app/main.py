@@ -25,8 +25,6 @@ origins = [
     "http://localhost:8001",
     "http://127.0.0.1:4500",
     "http://127.0.0.1:8001",
-    "http://localhost:3000",  # Common React dev port
-    "http://127.0.0.1:3000",
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -58,5 +56,5 @@ async def read_forms_no_slash(service: FormService = Depends(get_form_service)):
 
 @app.get("/api/health")
 def read_root():
-    """ Proverava da li je API živ. """
+    """ Checks whether the API is alive. """
     return {"status": "ok"}

@@ -1,10 +1,10 @@
 """
-Security modul za autentifikaciju i autorizaciju.
+Security module for authentication and authorization.
 
-Sadrži:
+Contains:
 - Password hashing (bcrypt)
-- JWT token kreiranje i verifikacija
-- Dependencies za FastAPI route protection
+- JWT token creation and verification
+- Dependencies for FastAPI route protection
 """
 from datetime import datetime, timedelta
 from typing import Optional
@@ -25,22 +25,18 @@ from app.domain.models.user import User, UserRole
 security = HTTPBearer()
 
 
-# =============================================================================
-# Password Functions
-# =============================================================================
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifikuje da li plain password odgovara hash-u."""
+    """Verifies that a plain password matches the hash."""
     return bcrypt.checkpw(
-        plain_password.encode('utf-8'), 
+        plain_password.encode('utf-8'),
         hashed_password.encode('utf-8')
     )
 
 
 def get_password_hash(password: str) -> str:
-    """Hashuje password koristeći bcrypt."""
+    """Hashes a password using bcrypt."""
     return bcrypt.hashpw(
-        password.encode('utf-8'), 
+        password.encode('utf-8'),
         bcrypt.gensalt()
     ).decode('utf-8')
 
@@ -51,31 +47,31 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
-    Kreira JWT access token.
-    
+    Creates a JWT access token.
+
     Args:
-        data: Podaci koji se enkoduju u token (obično {"sub": user_id})
-        expires_delta: Opciono, custom vreme isteka
-    
+        data: Payload encoded into the token (usually {"sub": user_id})
+        expires_delta: Optional custom expiration time
+
     Returns:
-        Enkodovani JWT token string
+        Encoded JWT token string
     """
     to_encode = data.copy()
-    
+
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode.update({
         "exp": expire,
         "type": "access",
         "iat": datetime.utcnow()
     })
-    
+
     encoded_jwt = jwt.encode(
-        to_encode, 
-        settings.SECRET_KEY, 
+        to_encode,
+        settings.SECRET_KEY,
         algorithm=settings.ALGORITHM
     )
     return encoded_jwt
@@ -83,26 +79,26 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def create_refresh_token(data: dict) -> str:
     """
-    Kreira JWT refresh token sa dužim vremenom isteka.
-    
+    Creates a JWT refresh token with a longer expiration time.
+
     Args:
-        data: Podaci koji se enkoduju u token
-    
+        data: Payload encoded into the token
+
     Returns:
-        Enkodovani JWT refresh token string
+        Encoded JWT refresh token string
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    
+
     to_encode.update({
         "exp": expire,
         "type": "refresh",
         "iat": datetime.utcnow()
     })
-    
+
     encoded_jwt = jwt.encode(
-        to_encode, 
-        settings.SECRET_KEY, 
+        to_encode,
+        settings.SECRET_KEY,
         algorithm=settings.ALGORITHM
     )
     return encoded_jwt
@@ -110,20 +106,20 @@ def create_refresh_token(data: dict) -> str:
 
 def decode_token(token: str) -> dict:
     """
-    Dekoduje i validira JWT token.
-    
+    Decodes and validates a JWT token.
+
     Args:
         token: JWT token string
-    
+
     Returns:
-        Dekodirani payload
-    
+        Decoded payload
+
     Raises:
-        JWTError: Ako je token nevažeći ili istekao
+        JWTError: If the token is invalid or expired
     """
     return jwt.decode(
-        token, 
-        settings.SECRET_KEY, 
+        token,
+        settings.SECRET_KEY,
         algorithms=[settings.ALGORITHM]
     )
 
@@ -137,50 +133,49 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
-    FastAPI dependency za dobijanje trenutno ulogovanog korisnika.
-    
-    Koristi se kao: current_user: User = Depends(get_current_user)
-    
+    FastAPI dependency that returns the currently logged-in user.
+
+    Used as: current_user: User = Depends(get_current_user)
+
     Raises:
-        HTTPException 401: Ako token nije validan
-        HTTPException 401: Ako korisnik ne postoji
-        HTTPException 400: Ako je korisnik neaktivan
+        HTTPException 401: If the token is invalid
+        HTTPException 401: If the user does not exist
+        HTTPException 400: If the user is inactive
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     token = credentials.credentials
-    
+
     try:
         payload = decode_token(token)
-        
-        # Proveri da li je access token
+
+        # Make sure this is an access token
         if payload.get("type") != "access":
             raise credentials_exception
-        
+
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-            
+
     except JWTError:
         raise credentials_exception
-    
-    # Dohvati korisnika iz baze
+
     result = await db.execute(select(User).filter(User.id == int(user_id)))
     user = result.scalar_one_or_none()
 
     if user is None:
         raise credentials_exception
-    
+
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
         )
-    
+
     return user
 
 
@@ -188,12 +183,12 @@ async def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """
-    Dependency koji dodatno proverava da li je korisnik aktivan.
-    Koristan kao wrapper za get_current_user.
+    Dependency that additionally checks whether the user is active.
+    Useful as a wrapper around get_current_user.
     """
     if not current_user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
         )
     return current_user
@@ -201,13 +196,13 @@ async def get_current_active_user(
 
 def require_role(allowed_roles: list[UserRole]):
     """
-    Factory function za kreiranje dependency-ja koji zahteva određenu rolu.
-    
-    Koristi se kao: current_user: User = Depends(require_role([UserRole.ADMIN]))
-    
+    Factory function that builds a dependency requiring a specific role.
+
+    Used as: current_user: User = Depends(require_role([UserRole.ADMIN]))
+
     Args:
-        allowed_roles: Lista dozvoljenih rola
-    
+        allowed_roles: List of allowed roles
+
     Returns:
         FastAPI dependency function
     """
@@ -220,7 +215,7 @@ def require_role(allowed_roles: list[UserRole]):
                 detail="Insufficient permissions"
             )
         return current_user
-    
+
     return role_checker
 
 
@@ -235,31 +230,31 @@ async def get_current_user_optional(
     db: AsyncSession = Depends(get_db)
 ) -> Optional[User]:
     """
-    Opcioni dependency - vraća korisnika ako je ulogovan, None ako nije.
-    
-    Koristan za endpointe koji rade i sa i bez autentifikacije.
+    Optional dependency - returns the user if logged in, None otherwise.
+
+    Useful for endpoints that work both with and without authentication.
     """
     if credentials is None:
         return None
-    
+
     try:
         payload = decode_token(credentials.credentials)
-        
+
         if payload.get("type") != "access":
             return None
-        
+
         user_id = payload.get("sub")
         if user_id is None:
             return None
-        
+
         result = await db.execute(select(User).filter(User.id == int(user_id)))
         user = result.scalar_one_or_none()
 
         if user and user.is_active:
             return user
-        
+
         return None
-        
+
     except JWTError:
         return None
 

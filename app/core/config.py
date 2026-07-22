@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     # External APIs
     GEMINI_API_KEY: str
 
+    # AI provider
+    AI_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    AI_MODEL: str = "gemini-2.5-flash"
+
     # JWT Authentication
     SECRET_KEY: str = "your-super-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
@@ -31,7 +35,7 @@ class Settings(BaseSettings):
     
     model_config = SettingsConfigDict(
         env_file=".env",
-        extra="ignore"  # Ignoriši dodatna polja iz .env
+        extra="ignore"  # Ignore extra fields from .env
     )
 
 

@@ -1,29 +1,40 @@
 import json
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import ValidationError
 
 from app.api.ai_schema import PromptRequest
-from app.api.form_schema import  FormSchemaCreate
+from app.api.deps import get_ai_service
+from app.api.form_schema import FormSchemaCreate
 from app.application.services.ai_service import AIService
 
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
+
 @router.post("/test-prompt")
-async def test_ai_prompt(request: PromptRequest, ai_service: AIService = Depends(AIService)):
-    response_text = await ai_service.generate_response(request.prompt)
+async def test_ai_prompt(
+        request: PromptRequest,
+        ai_service: AIService = Depends(get_ai_service)
+):
+    try:
+        response_text = await ai_service.generate_response(request.prompt)
+    except Exception:
+        logger.exception("AI request failed")
+        raise HTTPException(status_code=502, detail="Could not get a response from the AI model.")
+
     return {"response": response_text}
 
+
 @router.post("/generate-form-from-text", response_model=FormSchemaCreate)
-def generate_form_from_text(
+async def generate_form_from_text(
         request: PromptRequest,
-        ai_service: AIService = Depends(AIService)
+        ai_service: AIService = Depends(get_ai_service)
 ):
-
-    global ai_response_str
     form_schema_definition = json.dumps(FormSchemaCreate.model_json_schema(), indent=2)
-
 
     system_prompt = f"""
     You are an expert assistant for creating web forms. Your task is to convert a user's text description into a valid JSON object that strictly follows the provided JSON schema.
@@ -41,23 +52,19 @@ def generate_form_from_text(
     """
 
     try:
-
-        ai_response_str = ai_service.generate_json_from_prompt(
+        ai_response_str = await ai_service.generate_json_from_prompt(
             system_prompt=system_prompt,
             user_prompt=request.prompt
         )
+    except Exception:
+        logger.exception("AI request failed")
+        raise HTTPException(status_code=502, detail="Could not get a response from the AI model.")
 
-        ai_json = json.loads(ai_response_str)
-        validated_schema = FormSchemaCreate(**ai_json)
-
-        return validated_schema
-
+    try:
+        return FormSchemaCreate(**json.loads(ai_response_str))
     except json.JSONDecodeError:
-        print("AI returned invalid JSON:", ai_response_str)
-        raise HTTPException(status_code=500, detail="AI failed to generate valid JSON.")
-    except ValidationError as e:
-        print("AI JSON did not match schema:", e)
-        raise HTTPException(status_code=500, detail="AI response did not match the required form schema.")
-    except Exception as e:
-        print("An unexpected error occurred:", e)
-        raise HTTPException(status_code=500, detail="An unexpected error occurred while processing the AI request.")
+        logger.error("AI returned invalid JSON: %s", ai_response_str)
+        raise HTTPException(status_code=502, detail="AI failed to generate valid JSON.")
+    except ValidationError:
+        logger.exception("AI JSON did not match schema")
+        raise HTTPException(status_code=502, detail="AI response did not match the required form schema.")
