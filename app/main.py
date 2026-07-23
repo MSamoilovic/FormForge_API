@@ -7,9 +7,6 @@ from app.api.v1.ai import router as ai_routes
 from app.api.v1.auth import router as auth_routes
 from app.api.v1.form_import import router as form_import_routes
 
-from app.domain.models.base import Base
-from app.infrastructure.database.session import engine
-
 
 app = FastAPI(
     title="FormForge API",
@@ -40,18 +37,6 @@ app.include_router(form_routes, prefix="/api/forms", tags=["Forms"])
 app.include_router(form_import_routes, prefix="/api")
 app.include_router(submission_routes, prefix="/api/submissions", tags=["Submissions"])
 app.include_router(ai_routes, prefix="/api/ai", tags=["AI"])
-
-# Add explicit routes without trailing slash to avoid redirects that break CORS
-from typing import List
-from app.api.form_schema import FormSchemaResponse
-from app.api.deps import get_form_service
-from app.application.services.form_service import FormService
-from fastapi import Depends
-
-@app.get("/api/forms", response_model=List[FormSchemaResponse], include_in_schema=False)
-async def read_forms_no_slash(service: FormService = Depends(get_form_service)):
-    """Handle /api/forms without trailing slash to avoid CORS issues with redirects"""
-    return await service.get_all_forms()
 
 
 @app.get("/api/health")

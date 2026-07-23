@@ -28,7 +28,13 @@ class SubmissionRepository(ISubmissionRepository):
         if filters:
             for key, value in filters.items():
                 if value:
-                    query = query.filter(Submission.data[key].astext().ilike(f"%{value}%"))
+                    # `as_string()` is the portable JSON comparator (compiles to
+                    # PostgreSQL's `->>` text extraction). `.astext` is a
+                    # JSONB-only property and does not exist on this generic
+                    # JSON column.
+                    query = query.filter(
+                        Submission.data[key].as_string().ilike(f"%{value}%")
+                    )
 
         query = query.order_by(Submission.submitted_at.desc())
         result = await self.session.execute(query)

@@ -40,9 +40,22 @@ async def read_submissions_for_form(
 async def export_form_submissions(
     form_id: int,
     request: Request,
-    service: SubmissionService = Depends(get_submission_service)
+    service: SubmissionService = Depends(get_submission_service),
+    form_service: FormService = Depends(get_form_service)
 ):
-    filters = dict(request.query_params)
+    db_form = await form_service.get_form_by_id(form_id)
+    if not db_form:
+        raise HTTPException(status_code=404, detail="Form not found")
+
+    # Only accept filters that name an actual field of this form. Any other
+    # query param is ignored, so arbitrary keys can't be injected into the
+    # JSON lookup.
+    allowed_keys = {field["id"] for field in (db_form.fields or []) if "id" in field}
+    filters = {
+        key: value
+        for key, value in request.query_params.items()
+        if key in allowed_keys
+    }
 
     submissions = await service.get_submissions_by_form_id(form_id=form_id, filters=filters)
 

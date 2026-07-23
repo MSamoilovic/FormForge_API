@@ -10,7 +10,8 @@ from app.domain.models.user import User
 router = APIRouter()
 
 
-@router.post("/", response_model=FormSchemaResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=FormSchemaResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=FormSchemaResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 async def create_form(
     form: FormSchemaCreate, 
     service: FormService = Depends(get_form_service),
@@ -24,7 +25,8 @@ async def create_form(
     return await service.create_form(form, owner_id=current_user.id)
 
 
-@router.get("/", response_model=List[FormSchemaResponse])
+@router.get("", response_model=List[FormSchemaResponse])
+@router.get("/", response_model=List[FormSchemaResponse], include_in_schema=False)
 async def read_forms(
     service: FormService = Depends(get_form_service),
     current_user: Optional[User] = Depends(get_current_user_optional)
