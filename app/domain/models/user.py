@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Boolean, DateTime, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from app.core.time import utcnow
 import enum
 
 from .base import Base
@@ -40,8 +40,8 @@ class User(Base):
     role = Column(userrole_enum, default='form_creator')
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, onupdate=utcnow)
     last_login = Column(DateTime, nullable=True)
     
     # Multi-tenancy - opciono

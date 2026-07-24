@@ -2,7 +2,8 @@
 Seed script za FormForge API
 Popunjava bazu sa test podacima za development
 """
-from datetime import datetime, timedelta
+from datetime import timedelta
+from app.core.time import utcnow
 from sqlalchemy.orm import Session
 from app.infrastructure.database.session import SessionLocal
 from app.domain.models.form import Form
@@ -317,7 +318,7 @@ def seed_submissions(db: Session):
     """Kreira test submissions"""
     logger.info("📨 Kreiranje test submissions...")
     
-    now = datetime.utcnow()
+    now = utcnow()
     
     submissions = [
         # Submissions za Kontakt Formu (id=1)

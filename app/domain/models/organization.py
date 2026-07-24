@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from app.core.time import utcnow
 
 from .base import Base
 
@@ -22,8 +22,8 @@ class Organization(Base):
     settings = Column(JSON, default=dict)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, onupdate=utcnow)
     
     # Relations
     users = relationship("User", back_populates="organization")

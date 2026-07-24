@@ -72,16 +72,7 @@ async def update_form(
     Zahteva autentifikaciju (JWT ili API ključ sa 'write' scope-om) -
     samo vlasnik forme može da je ažurira.
     """
-    # Proveri ownership
-    existing_form = await service.get_form_by_id(form_id)
-    if existing_form is None:
-        raise HTTPException(status_code=404, detail="Form not found")
-    
-    if existing_form.owner_id and existing_form.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this form")
-    
-    updated_form = await service.update_form(form_id=form_id, form_data=form)
-    return updated_form
+    return await service.update_form(form_id=form_id, form_data=form, user_id=current_user.id)
 
 
 @router.delete("/{form_id}", status_code=204)
@@ -96,15 +87,5 @@ async def delete_form_endpoint(
     Zahteva autentifikaciju (JWT ili API ključ sa 'delete' scope-om) -
     samo vlasnik forme može da je obriše.
     """
-    # Proveri ownership
-    existing_form = await service.get_form_by_id(form_id)
-    if existing_form is None:
-        raise HTTPException(status_code=404, detail="Form not found")
-    
-    if existing_form.owner_id and existing_form.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this form")
-    
-    success = await service.delete_form(form_id=form_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Form not found")
+    await service.delete_form(form_id=form_id, user_id=current_user.id)
     return None

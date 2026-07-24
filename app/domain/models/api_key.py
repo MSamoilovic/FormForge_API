@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from app.core.time import utcnow
 
 from .base import Base
 
@@ -25,7 +25,7 @@ class APIKey(Base):
     last_used_at = Column(DateTime, nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     
     # Relations
     user = relationship("User", back_populates="api_keys")
@@ -38,7 +38,7 @@ class APIKey(Base):
         """Proveri da li je ključ istekao"""
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return utcnow() > self.expires_at
     
     @property
     def is_valid(self) -> bool:

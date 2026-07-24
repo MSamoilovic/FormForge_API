@@ -1,4 +1,4 @@
-from datetime import datetime
+from app.core.time import utcnow
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 from .base import Base
@@ -6,7 +6,7 @@ from .base import Base
 class Submission(Base):
     __tablename__ = "submissions"
     id = Column(Integer, primary_key=True, index=True)
-    submitted_at = Column(DateTime, default=datetime.utcnow)
+    submitted_at = Column(DateTime, default=utcnow)
     data = Column(JSON, nullable=False)
     form_id = Column(Integer, ForeignKey("forms.id"), nullable=False)
     form = relationship("Form", back_populates="submissions")

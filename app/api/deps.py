@@ -13,6 +13,7 @@ from app.application.interfaces.user_repository import IUserRepository
 from app.infrastructure.repositories.user_repository import UserRepository
 from app.application.services.auth_service import AuthService
 from app.application.services.ai_service import AIService
+from app.application.services.excel_import_service import ExcelImportService
 
 
 def get_form_repository(db: AsyncSession = Depends(get_db)) -> IFormRepository:
@@ -37,3 +38,8 @@ def get_auth_service(repo: IUserRepository = Depends(get_user_repository)) -> Au
 def get_ai_service() -> AIService:
     """AIService holds an HTTP client, so it is instantiated once and shared across requests."""
     return AIService()
+
+@lru_cache
+def get_excel_import_service() -> ExcelImportService:
+    """ExcelImportService is stateless, so a single shared instance is enough."""
+    return ExcelImportService()

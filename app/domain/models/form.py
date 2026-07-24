@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, JSON, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from app.core.time import utcnow
 from .base import Base
 
 
@@ -20,8 +20,8 @@ class Form(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
     
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, onupdate=utcnow)
     
     # Relations
     submissions = relationship("Submission", back_populates="form")

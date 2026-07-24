@@ -7,7 +7,7 @@ Contains:
 - Dependencies for FastAPI route protection
 """
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional
 
 from jose import JWTError, jwt
@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.core.config import settings
+from app.core.time import utcnow
 from app.infrastructure.database.session import get_db
 from app.domain.models.user import User, UserRole
 from app.domain.models.api_key import APIKey
@@ -64,14 +65,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode = data.copy()
 
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({
         "exp": expire,
         "type": "access",
-        "iat": datetime.utcnow()
+        "iat": utcnow()
     })
 
     encoded_jwt = jwt.encode(
@@ -93,12 +94,12 @@ def create_refresh_token(data: dict) -> str:
         Encoded JWT refresh token string
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     to_encode.update({
         "exp": expire,
         "type": "refresh",
-        "iat": datetime.utcnow()
+        "iat": utcnow()
     })
 
     encoded_jwt = jwt.encode(
@@ -182,21 +183,6 @@ async def get_current_user(
         )
 
     return user
-
-
-async def get_current_active_user(
-    current_user: User = Depends(get_current_user)
-) -> User:
-    """
-    Dependency that additionally checks whether the user is active.
-    Useful as a wrapper around get_current_user.
-    """
-    if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
-        )
-    return current_user
 
 
 def require_role(allowed_roles: list[UserRole]):
@@ -288,7 +274,7 @@ async def get_auth_context(
         auth = await _authenticate_api_key(api_key, db)
         if auth is not None:
             user, key_obj = auth
-            key_obj.last_used_at = datetime.utcnow()
+            key_obj.last_used_at = utcnow()
             await db.commit()
             return AuthContext(
                 user=user,

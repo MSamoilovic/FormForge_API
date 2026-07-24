@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Optional
 from secrets import token_urlsafe
 
 from fastapi import HTTPException, status
 
+from app.core.time import utcnow
 from app.domain.models.user import User, UserRole
 from app.domain.models.api_key import APIKey
 from app.application.interfaces.user_repository import IUserRepository
@@ -83,7 +84,7 @@ class AuthService:
                 detail="User account is deactivated"
             )
 
-        user.last_login = datetime.utcnow()
+        user.last_login = utcnow()
         await self.user_repo.save(user)
 
         access_token = create_access_token(data={"sub": str(user.id)})
@@ -169,14 +170,12 @@ class AuthService:
 
     # =========================================================================
     # API Key Management
-    # =========================================================================
-
     async def create_api_key(self, user: User, key_data: APIKeyCreate) -> APIKeyCreatedResponse:
         key = f"ff_{token_urlsafe(32)}"
 
         expires_at = None
         if key_data.expires_in_days:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=key_data.expires_in_days)
+            expires_at = utcnow() + timedelta(days=key_data.expires_in_days)
 
         api_key = APIKey(
             key=key,

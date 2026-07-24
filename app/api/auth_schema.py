@@ -8,10 +8,27 @@ import re
 
 from app.domain.models.user import UserRole
 
+# Shared validators
 
-# =============================================================================
+def validate_password_strength(v: str) -> str:
+    """Password must contain at least one uppercase letter, one lowercase, and one digit."""
+    if not re.search(r"[A-Z]", v):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not re.search(r"[a-z]", v):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not re.search(r"\d", v):
+        raise ValueError("Password must contain at least one digit")
+    return v
+
+
+def validate_username_format(v: str) -> str:
+    """Username may only contain letters, numbers, and underscores (normalized to lowercase)."""
+    if not re.match(r"^[a-zA-Z0-9_]+$", v):
+        raise ValueError("Username can only contain letters, numbers, and underscores")
+    return v.lower()
+
 # Request Schemas
-# =============================================================================
+
 
 class UserRegister(BaseModel):
     """Schema za registraciju novog korisnika."""
@@ -19,26 +36,16 @@ class UserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=8, max_length=100)
     full_name: Optional[str] = Field(None, max_length=100)
-    
+
     @field_validator("username")
     @classmethod
-    def validate_username(cls, v: str) -> str:
-        """Username može sadržati samo slova, brojeve i underscore."""
-        if not re.match(r"^[a-zA-Z0-9_]+$", v):
-            raise ValueError("Username can only contain letters, numbers, and underscores")
-        return v.lower()
-    
+    def _validate_username(cls, v: str) -> str:
+        return validate_username_format(v)
+
     @field_validator("password")
     @classmethod
-    def validate_password(cls, v: str) -> str:
-        """Password mora imati bar jedno veliko slovo, malo slovo i broj."""
-        if not re.search(r"[A-Z]", v):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", v):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", v):
-            raise ValueError("Password must contain at least one digit")
-        return v
+    def _validate_password(cls, v: str) -> str:
+        return validate_password_strength(v)
 
 
 class UserLogin(BaseModel):
@@ -56,33 +63,22 @@ class PasswordChange(BaseModel):
     """Schema za promenu passworda."""
     old_password: str
     new_password: str = Field(..., min_length=8, max_length=100)
-    
+
     @field_validator("new_password")
     @classmethod
-    def validate_new_password(cls, v: str) -> str:
-        """Iste validacije kao za registraciju."""
-        if not re.search(r"[A-Z]", v):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", v):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", v):
-            raise ValueError("Password must contain at least one digit")
-        return v
+    def _validate_new_password(cls, v: str) -> str:
+        return validate_password_strength(v)
 
 
 class UserUpdate(BaseModel):
     """Schema za ažuriranje korisničkog profila."""
     full_name: Optional[str] = Field(None, max_length=100)
     username: Optional[str] = Field(None, min_length=3, max_length=50)
-    
+
     @field_validator("username")
     @classmethod
-    def validate_username(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None:
-            if not re.match(r"^[a-zA-Z0-9_]+$", v):
-                raise ValueError("Username can only contain letters, numbers, and underscores")
-            return v.lower()
-        return v
+    def _validate_username(cls, v: Optional[str]) -> Optional[str]:
+        return validate_username_format(v) if v is not None else v
 
 
 # =============================================================================

@@ -1,4 +1,3 @@
-import csv
 import io
 from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException
@@ -85,20 +84,11 @@ async def export_form_submissions(
     if not submissions:
         raise HTTPException(status_code=404, detail="No submissions found for the given criteria.")
 
-    output = io.StringIO()
-    writer = csv.writer(output)
+    field_ids = [field["id"] for field in (db_form.fields or []) if "id" in field]
+    csv_content = service.to_csv(submissions, field_ids)
 
-    first_submission_data = submissions[0].data
-    header = ['id', 'submitted_at'] + list(first_submission_data.keys())
-    writer.writerow(header)
-
-    for submission in submissions:
-        row = [submission.id, submission.submitted_at] + [submission.data.get(key, '') for key in first_submission_data.keys()]
-        writer.writerow(row)
-
-    output.seek(0)
     return StreamingResponse(
-        output,
+        io.StringIO(csv_content),
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=form_{form_id}_submissions.csv"}
     )
