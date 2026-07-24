@@ -6,23 +6,28 @@ Contains:
 - JWT token creation and verification
 - Dependencies for FastAPI route protection
 """
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 
 from jose import JWTError, jwt
 import bcrypt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.core.config import settings
 from app.infrastructure.database.session import get_db
 from app.domain.models.user import User, UserRole
+from app.domain.models.api_key import APIKey
 
 
 # HTTP Bearer security scheme
 security = HTTPBearer()
+
+# API key security scheme (M2M authentication via the X-API-Key header)
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -217,6 +222,105 @@ def require_role(allowed_roles: list[UserRole]):
         return current_user
 
     return role_checker
+
+
+# =============================================================================
+# API Key / M2M Authentication
+# =============================================================================
+
+@dataclass
+class AuthContext:
+    """Result of authenticating a request.
+
+    `via_api_key` distinguishes an M2M call (authenticated with an API key)
+    from a human session (JWT). `scopes` is only meaningful for API keys —
+    JWT users act with the full authority of their account.
+    """
+    user: User
+    via_api_key: bool = False
+    scopes: list[str] = field(default_factory=list)
+
+
+async def _authenticate_api_key(api_key: str, db: AsyncSession) -> Optional[tuple[User, APIKey]]:
+    """Resolve an API key string to its (user, key) pair, or None if invalid."""
+    result = await db.execute(select(APIKey).filter(APIKey.key == api_key))
+    key_obj = result.scalar_one_or_none()
+
+    # is_valid covers both is_active and expiry (see APIKey model)
+    if key_obj is None or not key_obj.is_valid:
+        return None
+
+    result = await db.execute(select(User).filter(User.id == key_obj.user_id))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        return None
+
+    return user, key_obj
+
+
+async def get_auth_context(
+    bearer: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    api_key: Optional[str] = Depends(api_key_header),
+    db: AsyncSession = Depends(get_db),
+) -> AuthContext:
+    """
+    Authenticate a request via either a JWT Bearer token or an API key.
+
+    A Bearer token takes precedence when both are present. Raises 401 if
+    neither credential resolves to an active user.
+    """
+    # --- JWT Bearer ---
+    if bearer is not None:
+        try:
+            payload = decode_token(bearer.credentials)
+            if payload.get("type") == "access":
+                user_id = payload.get("sub")
+                if user_id is not None:
+                    result = await db.execute(select(User).filter(User.id == int(user_id)))
+                    user = result.scalar_one_or_none()
+                    if user and user.is_active:
+                        return AuthContext(user=user)
+        except JWTError:
+            pass
+
+    # --- API key ---
+    if api_key:
+        auth = await _authenticate_api_key(api_key, db)
+        if auth is not None:
+            user, key_obj = auth
+            key_obj.last_used_at = datetime.utcnow()
+            await db.commit()
+            return AuthContext(
+                user=user,
+                via_api_key=True,
+                scopes=list(key_obj.scopes or []),
+            )
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def require_scope(scope: str):
+    """
+    Factory that builds a dependency requiring a given scope.
+
+    JWT-authenticated users always pass (scopes are an API-key concept).
+    API-key requests must carry the scope in their granted list.
+
+    Used as: current_user: User = Depends(require_scope("write"))
+    """
+    async def scope_checker(ctx: AuthContext = Depends(get_auth_context)) -> User:
+        if ctx.via_api_key and scope not in ctx.scopes:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"API key is missing the required scope: '{scope}'",
+            )
+        return ctx.user
+
+    return scope_checker
 
 
 # =============================================================================

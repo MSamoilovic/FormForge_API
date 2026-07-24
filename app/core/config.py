@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
+    DB_ECHO: bool = False  # Log every SQL statement (dev only)
 
     # External APIs
     GEMINI_API_KEY: str
@@ -19,7 +20,9 @@ class Settings(BaseSettings):
     AI_MODEL: str = "gemini-2.5-flash"
 
     # JWT Authentication
-    SECRET_KEY: str = "your-super-secret-key-change-in-production"
+    # Required — no default. Generate with:
+    #   python -c "import secrets; print(secrets.token_urlsafe(32))"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
