@@ -1,11 +1,10 @@
-from sqlalchemy import Column, String, Integer, DateTime, JSON
+from sqlalchemy import Column, String, Integer, JSON
 from sqlalchemy.orm import relationship
-from app.core.time import utcnow
 
-from .base import Base
+from .base import Base, TimestampMixin
 
 
-class Organization(Base):
+class Organization(Base, TimestampMixin):
     """Model za organizacije (multi-tenancy podrška)"""
     __tablename__ = "organizations"
     
@@ -20,11 +19,7 @@ class Organization(Base):
     
     # Settings
     settings = Column(JSON, default=dict)
-    
-    # Timestamps
-    created_at = Column(DateTime, default=utcnow)
-    updated_at = Column(DateTime, onupdate=utcnow)
-    
+
     # Relations
     users = relationship("User", back_populates="organization")
     forms = relationship("Form", back_populates="organization")

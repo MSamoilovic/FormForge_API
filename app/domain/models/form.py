@@ -1,10 +1,9 @@
-from sqlalchemy import Column, String, JSON, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, String, JSON, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-from app.core.time import utcnow
-from .base import Base
+from .base import Base, TimestampMixin
 
 
-class Form(Base):
+class Form(Base, TimestampMixin):
     __tablename__ = "forms"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
@@ -18,11 +17,7 @@ class Form(Base):
     # Ownership
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
-    
-    # Timestamps
-    created_at = Column(DateTime, default=utcnow)
-    updated_at = Column(DateTime, onupdate=utcnow)
-    
+
     # Relations
     submissions = relationship("Submission", back_populates="form")
     owner = relationship("User", back_populates="forms")

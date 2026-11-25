@@ -26,9 +26,7 @@ from app.api.auth_schema import (
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-# =============================================================================
-# Registration & Login
-# =============================================================================
+# --- Registration & Login ---
 
 @router.post(
     "/register",
@@ -92,9 +90,7 @@ async def refresh_token(
     return await service.refresh_access_token(token_data.refresh_token)
 
 
-# =============================================================================
-# Current User Profile
-# =============================================================================
+# --- Current User Profile ---
 
 @router.get(
     "/me",
@@ -163,9 +159,7 @@ async def change_password(
     return MessageResponse(message="Password changed successfully")
 
 
-# =============================================================================
-# API Keys Management
-# =============================================================================
+# --- API Keys Management ---
 
 @router.post(
     "/api-keys",

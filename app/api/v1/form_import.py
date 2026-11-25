@@ -16,9 +16,7 @@ from app.domain.models.user import User
 router = APIRouter(prefix="/forms/import", tags=["Form Import"])
 
 
-# =============================================================================
-# Response Schemas
-# =============================================================================
+# --- Response Schemas ---
 
 class ImportSuccessResponse(BaseModel):
     """Response kada je import uspešan."""
@@ -34,9 +32,7 @@ class ImportErrorResponse(BaseModel):
     errors: List[str]
 
 
-# =============================================================================
-# Helpers
-# =============================================================================
+# --- Helpers ---
 
 async def _read_xlsx_upload(file: UploadFile) -> bytes:
     """Validate the upload is an .xlsx file and return its bytes, or raise 400."""
@@ -78,9 +74,7 @@ async def _parse_upload(file: UploadFile, service: ExcelImportService):
     )
 
 
-# =============================================================================
-# Endpoints
-# =============================================================================
+# --- Endpoints ---
 
 @router.get(
     "/template",

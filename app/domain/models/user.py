@@ -1,10 +1,9 @@
 from sqlalchemy import Column, String, Boolean, DateTime, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.orm import relationship
-from app.core.time import utcnow
 import enum
 
-from .base import Base
+from .base import Base, TimestampMixin
 
 
 class UserRole(str, enum.Enum):
@@ -22,7 +21,7 @@ userrole_enum = PgEnum(
 )
 
 
-class User(Base):
+class User(Base, TimestampMixin):
     """Model za korisnike sistema"""
     __tablename__ = "users"
     
@@ -40,8 +39,6 @@ class User(Base):
     role = Column(userrole_enum, default='form_creator')
     
     # Timestamps
-    created_at = Column(DateTime, default=utcnow)
-    updated_at = Column(DateTime, onupdate=utcnow)
     last_login = Column(DateTime, nullable=True)
     
     # Multi-tenancy - opciono

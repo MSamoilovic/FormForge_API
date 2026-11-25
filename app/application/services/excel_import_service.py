@@ -51,9 +51,7 @@ THIN_BORDER = Border(
 class ExcelImportService:
     """Service za Excel import operacije."""
     
-    # =========================================================================
-    # Template Generation
-    # =========================================================================
+    # --- Template Generation ---
     
     def generate_template(self) -> BytesIO:
         """
@@ -136,9 +134,7 @@ class ExcelImportService:
         
         return output
     
-    # =========================================================================
-    # Excel Parsing & Validation
-    # =========================================================================
+    # --- Excel Parsing & Validation ---
     
     def parse_excel(self, file_content: bytes) -> Tuple[bool, Optional[FormSchemaCreate], List[str]]:
         """
@@ -418,9 +414,7 @@ class ExcelImportService:
         
         return options
     
-    # =========================================================================
-    # Helper Methods
-    # =========================================================================
+    # --- Helper Methods ---
     
     def _write_header_row(self, ws, headers: List[str]):
         """Piše header red sa stilom."""

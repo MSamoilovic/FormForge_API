@@ -81,9 +81,7 @@ class UserUpdate(BaseModel):
         return validate_username_format(v) if v is not None else v
 
 
-# =============================================================================
-# Response Schemas
-# =============================================================================
+# --- Response Schemas ---
 
 class TokenResponse(BaseModel):
     """Response sa access i refresh tokenima."""
@@ -127,9 +125,7 @@ class MessageResponse(BaseModel):
     message: str
 
 
-# =============================================================================
-# API Key Schemas
-# =============================================================================
+# --- API Key Schemas ---
 
 class APIKeyCreate(BaseModel):
     """Schema za kreiranje API ključa."""

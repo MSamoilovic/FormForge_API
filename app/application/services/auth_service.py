@@ -30,9 +30,7 @@ class AuthService:
     def __init__(self, user_repo: IUserRepository):
         self.user_repo = user_repo
 
-    # =========================================================================
-    # User Registration & Login
-    # =========================================================================
+    # --- User Registration & Login ---
 
     async def register_user(self, user_data: UserRegister) -> UserWithTokenResponse:
         if await self.user_repo.get_by_email(user_data.email):
@@ -133,9 +131,7 @@ class AuthService:
                 detail="Invalid or expired refresh token"
             )
 
-    # =========================================================================
-    # User Profile Management
-    # =========================================================================
+    # --- User Profile Management ---
 
     async def change_password(self, user: User, old_password: str, new_password: str) -> bool:
         if not verify_password(old_password, user.hashed_password):
@@ -168,8 +164,7 @@ class AuthService:
 
         return await self.user_repo.save(user)
 
-    # =========================================================================
-    # API Key Management
+    # --- API Key Management ---
     async def create_api_key(self, user: User, key_data: APIKeyCreate) -> APIKeyCreatedResponse:
         key = f"ff_{token_urlsafe(32)}"
 

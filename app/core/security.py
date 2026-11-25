@@ -47,9 +47,7 @@ def get_password_hash(password: str) -> str:
     ).decode('utf-8')
 
 
-# =============================================================================
-# JWT Token Functions
-# =============================================================================
+# --- JWT Token Functions ---
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
@@ -130,9 +128,7 @@ def decode_token(token: str) -> dict:
     )
 
 
-# =============================================================================
-# FastAPI Dependencies
-# =============================================================================
+# --- FastAPI Dependencies ---
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -210,9 +206,7 @@ def require_role(allowed_roles: list[UserRole]):
     return role_checker
 
 
-# =============================================================================
-# API Key / M2M Authentication
-# =============================================================================
+# --- API Key / M2M Authentication ---
 
 @dataclass
 class AuthContext:
@@ -309,9 +303,7 @@ def require_scope(scope: str):
     return scope_checker
 
 
-# =============================================================================
-# Optional Auth Dependency
-# =============================================================================
+# --- Optional Auth Dependency ---
 
 async def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(
