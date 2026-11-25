@@ -38,7 +38,7 @@ CLAUDE.md
 .claude/
 
 # Docs
-Docs/
+docs/
 
 # Environment Variables - CRITICAL!
 .env
