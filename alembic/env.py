@@ -1,24 +1,19 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from alembic import context
-
 import os
 import sys
+from logging.config import fileConfig
+
 from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))
 
 dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv(dotenv_path=dotenv_path)
 
-from app.domain.models.base import Base
-from app.domain.models.form import Form
-from app.domain.models.submission import Submission
-from app.domain.models.user import User
-from app.domain.models.organization import Organization
-from app.domain.models.api_key import APIKey
 from app.core.config import settings
+from app.domain.models.base import Base
 
 target_metadata = Base.metadata
 

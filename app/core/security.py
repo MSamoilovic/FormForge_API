@@ -9,21 +9,19 @@ Contains:
 
 from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import Optional
 
-from jose import JWTError, jwt
 import bcrypt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.core.config import settings
 from app.core.time import utcnow
-from app.infrastructure.database.session import get_db
-from app.domain.models.user import User, UserRole
 from app.domain.models.api_key import APIKey
-
+from app.domain.models.user import User, UserRole
+from app.infrastructure.database.session import get_db
 
 # HTTP Bearer security scheme
 security = HTTPBearer()
@@ -47,7 +45,7 @@ def get_password_hash(password: str) -> str:
 # --- JWT Token Functions ---
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """
     Creates a JWT access token.
 
@@ -205,7 +203,7 @@ class AuthContext:
 
 async def _authenticate_api_key(
     api_key: str, db: AsyncSession
-) -> Optional[tuple[User, APIKey]]:
+) -> tuple[User, APIKey] | None:
     """Resolve an API key string to its (user, key) pair, or None if invalid."""
     result = await db.execute(select(APIKey).filter(APIKey.key == api_key))
     key_obj = result.scalar_one_or_none()
@@ -223,10 +221,10 @@ async def _authenticate_api_key(
 
 
 async def get_auth_context(
-    bearer: Optional[HTTPAuthorizationCredentials] = Depends(
+    bearer: HTTPAuthorizationCredentials | None = Depends(
         HTTPBearer(auto_error=False)
     ),
-    api_key: Optional[str] = Depends(api_key_header),
+    api_key: str | None = Depends(api_key_header),
     db: AsyncSession = Depends(get_db),
 ) -> AuthContext:
     """
@@ -296,11 +294,11 @@ def require_scope(scope: str):
 
 
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+    credentials: HTTPAuthorizationCredentials | None = Depends(
         HTTPBearer(auto_error=False)
     ),
     db: AsyncSession = Depends(get_db),
-) -> Optional[User]:
+) -> User | None:
     """
     Optional dependency - returns the user if logged in, None otherwise.
 

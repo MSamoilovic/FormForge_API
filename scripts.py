@@ -1,5 +1,6 @@
-import uvicorn
 import sys
+
+import uvicorn
 
 
 def run_dev():

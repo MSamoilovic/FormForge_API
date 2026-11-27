@@ -4,7 +4,6 @@ Pydantic schemas za autentifikaciju i korisničke operacije.
 
 import re
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -81,12 +80,12 @@ class PasswordChange(BaseModel):
 class UserUpdate(BaseModel):
     """Schema za ažuriranje korisničkog profila."""
 
-    full_name: Optional[str] = Field(None, max_length=100)
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    full_name: str | None = Field(None, max_length=100)
+    username: str | None = Field(None, min_length=3, max_length=50)
 
     @field_validator("username")
     @classmethod
-    def _validate_username(cls, v: Optional[str]) -> Optional[str]:
+    def _validate_username(cls, v: str | None) -> str | None:
         return validate_username_format(v) if v is not None else v
 
 
@@ -114,13 +113,13 @@ class UserResponse(BaseModel):
     id: int
     email: str
     username: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
     role: UserRole
     is_active: bool
     is_verified: bool
     created_at: datetime
-    last_login: Optional[datetime] = None
-    organization_id: Optional[int] = None
+    last_login: datetime | None = None
+    organization_id: int | None = None
 
     model_config = {"from_attributes": True}
 
@@ -148,7 +147,7 @@ class APIKeyCreate(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=100)
     scopes: list[str] = Field(default=["read"])
-    expires_in_days: Optional[int] = Field(None, ge=1, le=365)
+    expires_in_days: int | None = Field(None, ge=1, le=365)
 
 
 class APIKeyResponse(BaseModel):
@@ -159,8 +158,8 @@ class APIKeyResponse(BaseModel):
     scopes: list[str]
     is_active: bool
     created_at: datetime
-    expires_at: Optional[datetime] = None
-    last_used_at: Optional[datetime] = None
+    expires_at: datetime | None = None
+    last_used_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 
@@ -172,5 +171,5 @@ class APIKeyCreatedResponse(BaseModel):
     key: str  # Prikazuje se samo jednom!
     name: str
     scopes: list[str]
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     message: str = "Store this key securely. It won't be shown again."

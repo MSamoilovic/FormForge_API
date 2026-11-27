@@ -3,13 +3,15 @@ Seed script za FormForge API
 Popunjava bazu sa test podacima za development
 """
 
+import logging
 from datetime import timedelta
-from app.core.time import utcnow
+
 from sqlalchemy.orm import Session
-from app.infrastructure.database.session import SessionLocal
+
+from app.core.time import utcnow
 from app.domain.models.form import Form
 from app.domain.models.submission import Submission
-import logging
+from app.infrastructure.database.session import SessionLocal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -480,13 +482,13 @@ def run_seed(clear: bool = False):
 
         logger.info("=" * 60)
         logger.info("🎉 Seed završen uspešno!")
-        logger.info(f"📊 Statistika:")
+        logger.info("📊 Statistika:")
         logger.info(f"   - Forme: {forms_count}")
         logger.info(f"   - Submissions: {submissions_count}")
         logger.info("=" * 60)
 
     except Exception as e:
-        logger.error(f"❌ Greška tokom seed-a: {str(e)}")
+        logger.error(f"❌ Greška tokom seed-a: {e!s}")
         db.rollback()
         raise
     finally:

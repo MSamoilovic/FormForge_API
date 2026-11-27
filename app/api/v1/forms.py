@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Optional
 
-from app.application.services.form_service import FormService
-from app.api.form_schema import FormSchemaCreate, FormSchemaResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+
 from app.api.deps import get_form_service
+from app.api.form_schema import FormSchemaCreate, FormSchemaResponse
+from app.application.services.form_service import FormService
 from app.core.security import get_current_user_optional, require_scope
 from app.domain.models.user import User
 
@@ -31,11 +31,11 @@ async def create_form(
     return await service.create_form(form, owner_id=current_user.id)
 
 
-@router.get("", response_model=List[FormSchemaResponse])
-@router.get("/", response_model=List[FormSchemaResponse], include_in_schema=False)
+@router.get("", response_model=list[FormSchemaResponse])
+@router.get("/", response_model=list[FormSchemaResponse], include_in_schema=False)
 async def read_forms(
     service: FormService = Depends(get_form_service),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User | None = Depends(get_current_user_optional),
 ):
     """
     Vraća listu svih formi.
@@ -92,4 +92,3 @@ async def delete_form_endpoint(
     samo vlasnik forme može da je obriše.
     """
     await service.delete_form(form_id=form_id, user_id=current_user.id)
-    return None

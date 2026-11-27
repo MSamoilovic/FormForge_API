@@ -1,18 +1,15 @@
 import io
-from typing import List
-from fastapi import APIRouter, status, Depends, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.requests import Request
 from starlette.responses import StreamingResponse
 
-from app.application.services.submission_service import SubmissionService
+from app.api.deps import get_form_service, get_submission_service
+from app.api.submission_schema import SubmissionCreate, SubmissionResponse
 from app.application.services.form_service import FormService
-from app.api.deps import get_submission_service, get_form_service
-from app.api.submission_schema import SubmissionCreate
+from app.application.services.submission_service import SubmissionService
 from app.core.security import require_scope
 from app.domain.models.user import User
-
-from app.api.submission_schema import SubmissionResponse
-
 
 router = APIRouter()
 
@@ -47,7 +44,7 @@ async def create_submission_for_form(
     return await service.create_submission(form_id=form_id, submission_data=submission)
 
 
-@router.get("/{form_id}", response_model=List[SubmissionResponse])
+@router.get("/{form_id}", response_model=list[SubmissionResponse])
 async def read_submissions_for_form(
     form_id: int,
     service: SubmissionService = Depends(get_submission_service),

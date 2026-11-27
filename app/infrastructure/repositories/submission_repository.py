@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -22,8 +22,8 @@ class SubmissionRepository(ISubmissionRepository):
         return db_submission
 
     async def get_all_by_form_id(
-        self, form_id: int, filters: Dict[str, Any] = None
-    ) -> List[type[Submission]]:
+        self, form_id: int, filters: dict[str, Any] = None
+    ) -> list[type[Submission]]:
         query = select(Submission).filter(Submission.form_id == form_id)
 
         if filters:
@@ -41,13 +41,13 @@ class SubmissionRepository(ISubmissionRepository):
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def get_by_id(self, submission_id: int) -> Optional[Submission]:
+    async def get_by_id(self, submission_id: int) -> Submission | None:
         pass
 
     async def update(
         self, submission_id: int, submission_data: SubmissionCreate
-    ) -> Optional[Submission]:
+    ) -> Submission | None:
         pass
 
-    async def delete(self, submission_id: int) -> Optional[Submission]:
+    async def delete(self, submission_id: int) -> Submission | None:
         pass

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, field_validator
-from typing import List, Optional, Any, Union, Literal
 from enum import Enum
+from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class FieldType(str, Enum):
@@ -104,29 +105,29 @@ class RuleCondition(BaseModel):
 
 class RuleConditionGroup(BaseModel):
     operator: Literal["and", "or"]
-    conditions: List[Union[RuleCondition, RuleConditionGroup]]
+    conditions: list[RuleCondition | RuleConditionGroup]
 
 
 class RuleAction(BaseModel):
     targetFieldId: str
     type: RuleActionType
-    value: Optional[Any] = None
+    value: Any | None = None
 
 
 class FormRule(BaseModel):
     id: str
-    description: Optional[str] = None
-    conditionLogic: Optional[Literal["and", "or"]] = "and"
-    conditions: List[Union[RuleCondition, RuleConditionGroup]]
-    actions: List[RuleAction]
+    description: str | None = None
+    conditionLogic: Literal["and", "or"] | None = "and"
+    conditions: list[RuleCondition | RuleConditionGroup]
+    actions: list[RuleAction]
 
 
 class ThemeSettings(BaseModel):
-    primaryColor: Optional[str] = None
-    backgroundColor: Optional[str] = None
-    textColor: Optional[str] = None
-    fontFamily: Optional[str] = None
-    borderRadius: Optional[int] = None
+    primaryColor: str | None = None
+    backgroundColor: str | None = None
+    textColor: str | None = None
+    fontFamily: str | None = None
+    borderRadius: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -135,24 +136,24 @@ class FormField(BaseModel):
     id: str
     type: FieldType
     label: str
-    placeholder: Optional[str] = None
-    required: Optional[bool] = False
-    options: Optional[List[FieldOption]] = []
-    validations: Optional[List[Any]] = []
-    rules: Optional[List[FormRule]] = []
-    theme: Optional[ThemeSettings] = None
+    placeholder: str | None = None
+    required: bool | None = False
+    options: list[FieldOption] | None = []
+    validations: list[Any] | None = []
+    rules: list[FormRule] | None = []
+    theme: ThemeSettings | None = None
 
     # Number field
-    min: Optional[float] = None
-    max: Optional[float] = None
-    step: Optional[float] = None
+    min: float | None = None
+    max: float | None = None
+    step: float | None = None
 
     # Color picker field
-    colorFormat: Optional[ColorFormat] = None
+    colorFormat: ColorFormat | None = None
 
     # Phone field
-    defaultCountry: Optional[str] = None
-    showCountrySelector: Optional[bool] = None
+    defaultCountry: str | None = None
+    showCountrySelector: bool | None = None
 
     @field_validator("type", mode="before")
     @classmethod
@@ -163,22 +164,22 @@ class FormField(BaseModel):
 class FormSchema(BaseModel):
     id: int
     name: str
-    description: Optional[str] = None
-    submitMessage: Optional[str] = None
-    fields: List[FormField]
-    rules: Optional[List[FormRule]] = []
-    theme: Optional[ThemeSettings] = None
+    description: str | None = None
+    submitMessage: str | None = None
+    fields: list[FormField]
+    rules: list[FormRule] | None = []
+    theme: ThemeSettings | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class FormSchemaCreate(BaseModel):
     name: str
-    description: Optional[str] = None
-    submitMessage: Optional[str] = None
-    fields: List[FormField]
-    rules: Optional[List[FormRule]] = None
-    theme: Optional[ThemeSettings] = None
+    description: str | None = None
+    submitMessage: str | None = None
+    fields: list[FormField]
+    rules: list[FormRule] | None = None
+    theme: ThemeSettings | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -40,3 +40,46 @@ packages = ["app"]
 dev = [
     "ruff>=0.17.6",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "DTZ",  # flake8-datetimez (naive datetime)
+    "BLE",  # blind except
+    "PIE",  # flake8-pie
+    "RET",  # flake8-return
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501", # line length is handled by the formatter
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency markers are meant to be called in default arguments.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Form",
+    "fastapi.File",
+    "fastapi.Security",
+    "app.core.security.require_role",
+    "app.core.security.require_scope",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]

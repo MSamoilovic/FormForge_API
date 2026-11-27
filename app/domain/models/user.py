@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, Boolean, DateTime, Integer, ForeignKey
+import enum
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.orm import relationship
-import enum
 
 from .base import Base, TimestampMixin
 

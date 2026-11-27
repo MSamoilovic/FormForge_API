@@ -8,13 +8,12 @@ Podržava:
 """
 
 from io import BytesIO
-from typing import List, Tuple, Optional
+
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-from app.api.form_schema import FormSchemaCreate, FormField, FieldType, FieldOption
-
+from app.api.form_schema import FieldOption, FieldType, FormField, FormSchemaCreate
 
 # Dozvoljeni tipovi polja
 ALLOWED_FIELD_TYPES = {
@@ -156,7 +155,7 @@ class ExcelImportService:
 
     def parse_excel(
         self, file_content: bytes
-    ) -> Tuple[bool, Optional[FormSchemaCreate], List[str]]:
+    ) -> tuple[bool, FormSchemaCreate | None, list[str]]:
         """
         Parsira Excel fajl i vraća FormSchemaCreate ili listu grešaka.
 
@@ -174,7 +173,7 @@ class ExcelImportService:
         try:
             wb = load_workbook(filename=BytesIO(file_content), data_only=True)
         except Exception as e:
-            return False, None, [f"Invalid Excel file: {str(e)}"]
+            return False, None, [f"Invalid Excel file: {e!s}"]
 
         # === Validacija Sheet-ova ===
         if "Form" not in wb.sheetnames:
@@ -209,7 +208,7 @@ class ExcelImportService:
 
         return True, form_schema, []
 
-    def _parse_form_sheet(self, ws) -> Tuple[dict, List[str]]:
+    def _parse_form_sheet(self, ws) -> tuple[dict, list[str]]:
         """Parsira Form sheet."""
         errors = []
         form_data = {}
@@ -251,7 +250,7 @@ class ExcelImportService:
 
         return form_data, errors
 
-    def _parse_fields_sheet(self, ws) -> Tuple[List[FormField], List[str]]:
+    def _parse_fields_sheet(self, ws) -> tuple[list[FormField], list[str]]:
         """Parsira Fields sheet."""
         errors = []
         fields = []
@@ -304,12 +303,12 @@ class ExcelImportService:
         return fields, errors
 
     def _parse_field_row(
-        self, values: List, header_map: dict, row_num: int, seen_ids: set
-    ) -> Tuple[Optional[FormField], List[str]]:
+        self, values: list, header_map: dict, row_num: int, seen_ids: set
+    ) -> tuple[FormField | None, list[str]]:
         """Parsira jedan red iz Fields sheet-a."""
         errors = []
 
-        def get_value(column: str) -> Optional[str]:
+        def get_value(column: str) -> str | None:
             idx = header_map.get(column)
             if idx is not None and idx < len(values):
                 val = values[idx]
@@ -436,7 +435,7 @@ class ExcelImportService:
 
         return field, []
 
-    def _parse_options(self, options_str: str) -> List[FieldOption]:
+    def _parse_options(self, options_str: str) -> list[FieldOption]:
         """Parsira options string u listu FieldOption."""
         options = []
         parts = options_str.split(",")
@@ -450,7 +449,7 @@ class ExcelImportService:
 
     # --- Helper Methods ---
 
-    def _write_header_row(self, ws, headers: List[str]):
+    def _write_header_row(self, ws, headers: list[str]):
         """Piše header red sa stilom."""
         for col, header in enumerate(headers, start=1):
             cell = ws.cell(row=1, column=col, value=header)
@@ -459,19 +458,19 @@ class ExcelImportService:
             cell.alignment = HEADER_ALIGNMENT
             cell.border = THIN_BORDER
 
-    def _write_data_row(self, ws, row: int, values: List):
+    def _write_data_row(self, ws, row: int, values: list):
         """Piše data red."""
         for col, value in enumerate(values, start=1):
             cell = ws.cell(row=row, column=col, value=value)
             cell.border = THIN_BORDER
 
-    def _auto_column_width(self, ws, headers: List[str]):
+    def _auto_column_width(self, ws, headers: list[str]):
         """Automatski podešava širinu kolona."""
         for i, header in enumerate(headers, start=1):
             col_letter = get_column_letter(i)
             ws.column_dimensions[col_letter].width = max(15, len(header) + 5)
 
-    def _get_row_values(self, ws, row: int) -> List:
+    def _get_row_values(self, ws, row: int) -> list:
         """Dohvata vrednosti iz reda."""
         values = []
         for cell in ws[row]:

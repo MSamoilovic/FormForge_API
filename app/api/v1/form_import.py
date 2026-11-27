@@ -2,17 +2,16 @@
 API endpoints za import formi iz Excel fajlova.
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
-from fastapi.responses import StreamingResponse, JSONResponse
-from pydantic import BaseModel
-from typing import List
 
-from app.application.services.excel_import_service import ExcelImportService
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel
+
 from app.api.deps import get_excel_import_service
 from app.api.form_schema import FormSchemaCreate
+from app.application.services.excel_import_service import ExcelImportService
 from app.core.security import get_current_user
 from app.domain.models.user import User
-
 
 router = APIRouter(prefix="/forms/import", tags=["Form Import"])
 
@@ -33,7 +32,7 @@ class ImportErrorResponse(BaseModel):
 
     success: bool = False
     message: str = "Validation errors found"
-    errors: List[str]
+    errors: list[str]
 
 
 # --- Helpers ---
@@ -57,7 +56,7 @@ async def _read_xlsx_upload(file: UploadFile) -> bytes:
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Error reading file: {str(e)}",
+            detail=f"Error reading file: {e!s}",
         )
 
 

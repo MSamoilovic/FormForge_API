@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.forms import router as form_routes
-from app.api.v1.submissions import router as submission_routes
 from app.api.v1.ai import router as ai_routes
 from app.api.v1.auth import router as auth_routes
 from app.api.v1.form_import import router as form_import_routes
-
+from app.api.v1.forms import router as form_routes
+from app.api.v1.submissions import router as submission_routes
 
 app = FastAPI(
     title="FormForge API",

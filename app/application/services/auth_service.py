@@ -1,29 +1,28 @@
 from datetime import timedelta
-from typing import Optional
 from secrets import token_urlsafe
 
 from fastapi import HTTPException, status
 
-from app.core.time import utcnow
-from app.domain.models.user import User, UserRole
-from app.domain.models.api_key import APIKey
+from app.api.auth_schema import (
+    APIKeyCreate,
+    APIKeyCreatedResponse,
+    TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserResponse,
+    UserWithTokenResponse,
+)
 from app.application.interfaces.user_repository import IUserRepository
 from app.core.security import (
-    verify_password,
-    get_password_hash,
     create_access_token,
     create_refresh_token,
     decode_token,
+    get_password_hash,
+    verify_password,
 )
-from app.api.auth_schema import (
-    UserRegister,
-    UserLogin,
-    TokenResponse,
-    UserWithTokenResponse,
-    UserResponse,
-    APIKeyCreate,
-    APIKeyCreatedResponse,
-)
+from app.core.time import utcnow
+from app.domain.models.api_key import APIKey
+from app.domain.models.user import User, UserRole
 
 
 class AuthService:
@@ -146,8 +145,8 @@ class AuthService:
     async def update_profile(
         self,
         user: User,
-        full_name: Optional[str] = None,
-        username: Optional[str] = None,
+        full_name: str | None = None,
+        username: str | None = None,
     ) -> User:
         if full_name is not None:
             user.full_name = full_name

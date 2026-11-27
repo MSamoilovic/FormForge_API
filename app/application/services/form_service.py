@@ -1,28 +1,27 @@
-from typing import List, Optional
 
 from fastapi import HTTPException, status
 
-from app.domain.models.form import Form
-from app.application.interfaces.form_repository import IFormRepository
 from app.api.form_schema import FormSchemaCreate
+from app.application.interfaces.form_repository import IFormRepository
+from app.domain.models.form import Form
 
 
 class FormService:
     def __init__(self, form_repo: IFormRepository):
         self.form_repo = form_repo
 
-    async def get_form_by_id(self, form_id: int) -> Optional[Form]:
+    async def get_form_by_id(self, form_id: int) -> Form | None:
         return await self.form_repo.get_by_id(form_id)
 
-    async def get_all_forms(self) -> List[Form]:
+    async def get_all_forms(self) -> list[Form]:
         return await self.form_repo.get_all()
 
-    async def get_forms_by_owner(self, owner_id: int) -> List[Form]:
+    async def get_forms_by_owner(self, owner_id: int) -> list[Form]:
         """Vraća sve forme koje pripadaju određenom korisniku."""
         return await self.form_repo.get_by_owner(owner_id)
 
     async def create_form(
-        self, form_data: FormSchemaCreate, owner_id: Optional[int] = None
+        self, form_data: FormSchemaCreate, owner_id: int | None = None
     ) -> Form:
         """Kreira novu formu, opciono sa owner_id."""
         return await self.form_repo.create(form_data, owner_id=owner_id)
@@ -47,7 +46,7 @@ class FormService:
 
     async def update_form(
         self, form_id: int, form_data: FormSchemaCreate, user_id: int
-    ) -> Optional[Form]:
+    ) -> Form | None:
         """Update a form after verifying ownership."""
         await self._get_owned_form(form_id, user_id)
         return await self.form_repo.update(form_id, form_data)

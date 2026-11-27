@@ -1,6 +1,8 @@
-from app.core.time import utcnow
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+
+from app.core.time import utcnow
+
 from .base import Base
 
 

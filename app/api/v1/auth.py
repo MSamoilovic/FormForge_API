@@ -4,25 +4,24 @@ Auth API endpoints za registraciju, login, i upravljanje korisnicima.
 
 from fastapi import APIRouter, Depends, status
 
-from app.api.deps import get_auth_service
-from app.core.security import get_current_user
-from app.domain.models.user import User
-from app.application.services.auth_service import AuthService
 from app.api.auth_schema import (
-    UserRegister,
-    UserLogin,
-    TokenRefresh,
+    APIKeyCreate,
+    APIKeyCreatedResponse,
+    APIKeyResponse,
+    MessageResponse,
     PasswordChange,
+    TokenRefresh,
+    TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserResponse,
     UserUpdate,
     UserWithTokenResponse,
-    TokenResponse,
-    UserResponse,
-    MessageResponse,
-    APIKeyCreate,
-    APIKeyResponse,
-    APIKeyCreatedResponse,
 )
-
+from app.api.deps import get_auth_service
+from app.application.services.auth_service import AuthService
+from app.core.security import get_current_user
+from app.domain.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

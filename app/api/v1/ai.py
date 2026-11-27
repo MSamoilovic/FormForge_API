@@ -9,7 +9,6 @@ from app.api.deps import get_ai_service
 from app.api.form_schema import FormSchemaCreate
 from app.application.services.ai_service import AIService
 
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter()

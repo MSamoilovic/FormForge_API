@@ -1,6 +1,8 @@
 import csv
 import io
-from typing import List, Dict, Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from typing import Any
+
 from app.api.submission_schema import SubmissionCreate
 from app.application.interfaces.submission_repository import ISubmissionRepository
 from app.domain.models.submission import Submission
@@ -16,8 +18,8 @@ class SubmissionService:
         return await self.submission_repository.create(form_id, submission_data)
 
     async def get_submissions_by_form_id(
-        self, form_id: int, filters: Dict[str, Any] = None
-    ) -> List[type[Submission]]:
+        self, form_id: int, filters: dict[str, Any] = None
+    ) -> list[type[Submission]]:
         return await self.submission_repository.get_all_by_form_id(form_id, filters)
 
     @staticmethod
@@ -29,7 +31,7 @@ class SubmissionService:
         Any extra keys present in the data but not in the form definition are
         appended after the known columns.
         """
-        columns: List[str] = list(field_ids)
+        columns: list[str] = list(field_ids)
         seen = set(columns)
         for submission in submissions:
             for key in submission.data.keys():
