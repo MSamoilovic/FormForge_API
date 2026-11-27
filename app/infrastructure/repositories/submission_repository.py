@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -12,33 +12,42 @@ class SubmissionRepository(ISubmissionRepository):
     def __init__(self, db_session: AsyncSession):
         self.session = db_session
 
-    async def create(self, form_id: int, submission_data: SubmissionCreate) -> Submission:
-        db_submission = Submission(
-            form_id=form_id,
-            data=submission_data.data
-        )
+    async def create(
+        self, form_id: int, submission_data: SubmissionCreate
+    ) -> Submission:
+        db_submission = Submission(form_id=form_id, data=submission_data.data)
         self.session.add(db_submission)
         await self.session.commit()
         await self.session.refresh(db_submission)
         return db_submission
 
-    async def get_all_by_form_id(self, form_id: int, filters: Dict[str, Any] = None) -> List[type[Submission]]:
+    async def get_all_by_form_id(
+        self, form_id: int, filters: dict[str, Any] = None
+    ) -> list[type[Submission]]:
         query = select(Submission).filter(Submission.form_id == form_id)
 
         if filters:
             for key, value in filters.items():
                 if value:
-                    query = query.filter(Submission.data[key].astext().ilike(f"%{value}%"))
+                    # `as_string()` is the portable JSON comparator (compiles to
+                    # PostgreSQL's `->>` text extraction). `.astext` is a
+                    # JSONB-only property and does not exist on this generic
+                    # JSON column.
+                    query = query.filter(
+                        Submission.data[key].as_string().ilike(f"%{value}%")
+                    )
 
         query = query.order_by(Submission.submitted_at.desc())
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def get_by_id(self, submission_id: int) -> Optional[Submission]:
+    async def get_by_id(self, submission_id: int) -> Submission | None:
         pass
 
-    async def update(self, submission_id: int, submission_data: SubmissionCreate) -> Optional[Submission]:
+    async def update(
+        self, submission_id: int, submission_data: SubmissionCreate
+    ) -> Submission | None:
         pass
 
-    async def delete(self, submission_id: int) -> Optional[Submission]:
+    async def delete(self, submission_id: int) -> Submission | None:
         pass

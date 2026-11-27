@@ -1,45 +1,43 @@
 """
 Auth API endpoints za registraciju, login, i upravljanje korisnicima.
 """
+
 from fastapi import APIRouter, Depends, status
 
-from app.api.deps import get_auth_service
-from app.core.security import get_current_user
-from app.domain.models.user import User
-from app.application.services.auth_service import AuthService
 from app.api.auth_schema import (
-    UserRegister,
-    UserLogin,
-    TokenRefresh,
+    APIKeyCreate,
+    APIKeyCreatedResponse,
+    APIKeyResponse,
+    MessageResponse,
     PasswordChange,
+    TokenRefresh,
+    TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserResponse,
     UserUpdate,
     UserWithTokenResponse,
-    TokenResponse,
-    UserResponse,
-    MessageResponse,
-    APIKeyCreate,
-    APIKeyResponse,
-    APIKeyCreatedResponse
 )
-
+from app.api.deps import get_auth_service
+from app.application.services.auth_service import AuthService
+from app.core.security import get_current_user
+from app.domain.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-# =============================================================================
-# Registration & Login
-# =============================================================================
+# --- Registration & Login ---
+
 
 @router.post(
     "/register",
     response_model=UserWithTokenResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register new user",
-    description="Create a new user account and return authentication tokens."
+    description="Create a new user account and return authentication tokens.",
 )
 async def register(
-    user_data: UserRegister,
-    service: AuthService = Depends(get_auth_service)
+    user_data: UserRegister, service: AuthService = Depends(get_auth_service)
 ):
     """
     Registracija novog korisnika.
@@ -56,11 +54,10 @@ async def register(
     "/login",
     response_model=UserWithTokenResponse,
     summary="Login user",
-    description="Authenticate user with email or username and return access and refresh tokens."
+    description="Authenticate user with email or username and return access and refresh tokens.",
 )
 async def login(
-    login_data: UserLogin,
-    service: AuthService = Depends(get_auth_service)
+    login_data: UserLogin, service: AuthService = Depends(get_auth_service)
 ):
     """
     Login korisnika sa email/username i password.
@@ -77,11 +74,10 @@ async def login(
     "/refresh",
     response_model=TokenResponse,
     summary="Refresh access token",
-    description="Use refresh token to get a new access token."
+    description="Use refresh token to get a new access token.",
 )
 async def refresh_token(
-    token_data: TokenRefresh,
-    service: AuthService = Depends(get_auth_service)
+    token_data: TokenRefresh, service: AuthService = Depends(get_auth_service)
 ):
     """
     Osvežavanje access tokena koristeći refresh token.
@@ -92,19 +88,16 @@ async def refresh_token(
     return await service.refresh_access_token(token_data.refresh_token)
 
 
-# =============================================================================
-# Current User Profile
-# =============================================================================
+# --- Current User Profile ---
+
 
 @router.get(
     "/me",
     response_model=UserResponse,
     summary="Get current user",
-    description="Get the currently authenticated user's information."
+    description="Get the currently authenticated user's information.",
 )
-async def get_me(
-    current_user: User = Depends(get_current_user)
-):
+async def get_me(current_user: User = Depends(get_current_user)):
     """
     Dohvata informacije o trenutno ulogovanom korisniku.
 
@@ -117,12 +110,12 @@ async def get_me(
     "/me",
     response_model=UserResponse,
     summary="Update current user",
-    description="Update the currently authenticated user's profile."
+    description="Update the currently authenticated user's profile.",
 )
 async def update_me(
     update_data: UserUpdate,
     current_user: User = Depends(get_current_user),
-    service: AuthService = Depends(get_auth_service)
+    service: AuthService = Depends(get_auth_service),
 ):
     """
     Ažurira profil trenutnog korisnika.
@@ -134,7 +127,7 @@ async def update_me(
     return await service.update_profile(
         user=current_user,
         full_name=update_data.full_name,
-        username=update_data.username
+        username=update_data.username,
     )
 
 
@@ -142,12 +135,12 @@ async def update_me(
     "/change-password",
     response_model=MessageResponse,
     summary="Change password",
-    description="Change the current user's password."
+    description="Change the current user's password.",
 )
 async def change_password(
     password_data: PasswordChange,
     current_user: User = Depends(get_current_user),
-    service: AuthService = Depends(get_auth_service)
+    service: AuthService = Depends(get_auth_service),
 ):
     """
     Promena lozinke trenutnog korisnika.
@@ -158,26 +151,25 @@ async def change_password(
     await service.change_password(
         user=current_user,
         old_password=password_data.old_password,
-        new_password=password_data.new_password
+        new_password=password_data.new_password,
     )
     return MessageResponse(message="Password changed successfully")
 
 
-# =============================================================================
-# API Keys Management
-# =============================================================================
+# --- API Keys Management ---
+
 
 @router.post(
     "/api-keys",
     response_model=APIKeyCreatedResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create API key",
-    description="Create a new API key for programmatic access."
+    description="Create a new API key for programmatic access.",
 )
 async def create_api_key(
     key_data: APIKeyCreate,
     current_user: User = Depends(get_current_user),
-    service: AuthService = Depends(get_auth_service)
+    service: AuthService = Depends(get_auth_service),
 ):
     """
     Kreira novi API ključ za programatski pristup.
@@ -195,11 +187,11 @@ async def create_api_key(
     "/api-keys",
     response_model=list[APIKeyResponse],
     summary="List API keys",
-    description="List all API keys for the current user."
+    description="List all API keys for the current user.",
 )
 async def list_api_keys(
     current_user: User = Depends(get_current_user),
-    service: AuthService = Depends(get_auth_service)
+    service: AuthService = Depends(get_auth_service),
 ):
     """
     Lista svih API ključeva trenutnog korisnika.
@@ -213,12 +205,12 @@ async def list_api_keys(
     "/api-keys/{key_id}",
     response_model=MessageResponse,
     summary="Revoke API key",
-    description="Deactivate an API key."
+    description="Deactivate an API key.",
 )
 async def revoke_api_key(
     key_id: int,
     current_user: User = Depends(get_current_user),
-    service: AuthService = Depends(get_auth_service)
+    service: AuthService = Depends(get_auth_service),
 ):
     """
     Deaktivira API ključ.

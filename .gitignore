@@ -33,10 +33,14 @@ ENV/
 *.swo
 *~
 
-# Docs
-Docs/
+# Claude Code
+CLAUDE.md
+.claude/
 
-# Environment Variables - KRITIČNO!
+# Docs
+docs/
+
+# Environment Variables - CRITICAL!
 .env
 .env.local
 .env.*.local

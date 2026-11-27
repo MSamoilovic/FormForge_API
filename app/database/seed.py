@@ -2,12 +2,16 @@
 Seed script za FormForge API
 Popunjava bazu sa test podacima za development
 """
-from datetime import datetime, timedelta
+
+import logging
+from datetime import timedelta
+
 from sqlalchemy.orm import Session
-from app.infrastructure.database.session import SessionLocal
+
+from app.core.time import utcnow
 from app.domain.models.form import Form
 from app.domain.models.submission import Submission
-import logging
+from app.infrastructure.database.session import SessionLocal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,7 +29,7 @@ def clear_data(db: Session):
 def seed_forms(db: Session):
     """Kreira test forme"""
     logger.info("📝 Kreiranje test formi...")
-    
+
     forms = [
         Form(
             id=1,
@@ -37,29 +41,29 @@ def seed_forms(db: Session):
                     "type": "text",
                     "label": "Ime i Prezime",
                     "required": True,
-                    "placeholder": "Unesite vaše ime i prezime"
+                    "placeholder": "Unesite vaše ime i prezime",
                 },
                 {
                     "id": "email",
                     "type": "email",
                     "label": "Email Adresa",
                     "required": True,
-                    "placeholder": "vas@email.com"
+                    "placeholder": "vas@email.com",
                 },
                 {
                     "id": "poruka",
-                    "type": "textarea",
+                    "type": "textArea",
                     "label": "Poruka",
                     "required": True,
-                    "placeholder": "Vaša poruka..."
-                }
+                    "placeholder": "Vaša poruka...",
+                },
             ],
             rules=[],
             theme={
                 "primaryColor": "#3B82F6",
                 "backgroundColor": "#F3F4F6",
-                "fontFamily": "Inter, sans-serif"
-            }
+                "fontFamily": "Inter, sans-serif",
+            },
         ),
         Form(
             id=2,
@@ -72,26 +76,21 @@ def seed_forms(db: Session):
                     "label": "Korisničko Ime",
                     "required": True,
                     "minLength": 3,
-                    "maxLength": 20
+                    "maxLength": 20,
                 },
-                {
-                    "id": "email",
-                    "type": "email",
-                    "label": "Email",
-                    "required": True
-                },
+                {"id": "email", "type": "email", "label": "Email", "required": True},
                 {
                     "id": "lozinka",
                     "type": "password",
                     "label": "Lozinka",
                     "required": True,
-                    "minLength": 8
+                    "minLength": 8,
                 },
                 {
                     "id": "datum_rodjenja",
                     "type": "date",
                     "label": "Datum Rođenja",
-                    "required": False
+                    "required": False,
                 },
                 {
                     "id": "drzava",
@@ -102,22 +101,22 @@ def seed_forms(db: Session):
                         {"value": "rs", "label": "Srbija"},
                         {"value": "hr", "label": "Hrvatska"},
                         {"value": "ba", "label": "Bosna i Hercegovina"},
-                        {"value": "me", "label": "Crna Gora"}
-                    ]
+                        {"value": "me", "label": "Crna Gora"},
+                    ],
                 },
                 {
                     "id": "saglasnost",
                     "type": "checkbox",
                     "label": "Slažem se sa uslovima korišćenja",
-                    "required": True
-                }
+                    "required": True,
+                },
             ],
             rules=[],
             theme={
                 "primaryColor": "#10B981",
                 "backgroundColor": "#FFFFFF",
-                "fontFamily": "Roboto, sans-serif"
-            }
+                "fontFamily": "Roboto, sans-serif",
+            },
         ),
         Form(
             id=3,
@@ -130,14 +129,14 @@ def seed_forms(db: Session):
                     "label": "Ocena (1-5)",
                     "required": True,
                     "min": 1,
-                    "max": 5
+                    "max": 5,
                 },
                 {
                     "id": "komentar",
-                    "type": "textarea",
+                    "type": "textArea",
                     "label": "Komentar",
                     "required": False,
-                    "placeholder": "Podelite vaše mišljenje sa nama..."
+                    "placeholder": "Podelite vaše mišljenje sa nama...",
                 },
                 {
                     "id": "preporuka",
@@ -147,16 +146,16 @@ def seed_forms(db: Session):
                     "options": [
                         {"value": "da", "label": "Da"},
                         {"value": "ne", "label": "Ne"},
-                        {"value": "mozda", "label": "Možda"}
-                    ]
-                }
+                        {"value": "mozda", "label": "Možda"},
+                    ],
+                },
             ],
             rules=[],
             theme={
                 "primaryColor": "#F59E0B",
                 "backgroundColor": "#FEF3C7",
-                "fontFamily": "Poppins, sans-serif"
-            }
+                "fontFamily": "Poppins, sans-serif",
+            },
         ),
         Form(
             id=4,
@@ -170,104 +169,90 @@ def seed_forms(db: Session):
                     "required": True,
                     "options": [
                         {"value": "fizicko", "label": "Fizičko lice"},
-                        {"value": "pravno", "label": "Pravno lice"}
-                    ]
+                        {"value": "pravno", "label": "Pravno lice"},
+                    ],
                 },
                 {
                     "id": "ime_prezime",
                     "type": "text",
                     "label": "Ime i Prezime",
                     "required": True,
-                    "visible": True
+                    "visible": True,
                 },
                 {
                     "id": "jmbg",
                     "type": "text",
                     "label": "JMBG",
                     "required": False,
-                    "visible": False
+                    "visible": False,
                 },
                 {
                     "id": "naziv_firme",
                     "type": "text",
                     "label": "Naziv Firme",
                     "required": False,
-                    "visible": False
+                    "visible": False,
                 },
                 {
                     "id": "pib",
                     "type": "text",
                     "label": "PIB",
                     "required": False,
-                    "visible": False
-                }
+                    "visible": False,
+                },
             ],
             rules=[
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "tip_lica",
-                        "operator": "equals",
-                        "value": "fizicko"
-                    },
-                    "target": "jmbg",
-                    "action": "show"
+                    "id": "rule-jmbg-show",
+                    "description": "Prikazi JMBG za fizicko lice",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {
+                            "fieldId": "tip_lica",
+                            "operator": "equals",
+                            "value": "fizicko",
+                        }
+                    ],
+                    "actions": [{"targetFieldId": "jmbg", "type": "show"}],
                 },
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "tip_lica",
-                        "operator": "equals",
-                        "value": "pravno"
-                    },
-                    "target": "naziv_firme",
-                    "action": "show"
+                    "id": "rule-naziv-firme-show",
+                    "description": "Prikazi naziv firme za pravno lice",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {"fieldId": "tip_lica", "operator": "equals", "value": "pravno"}
+                    ],
+                    "actions": [{"targetFieldId": "naziv_firme", "type": "show"}],
                 },
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "tip_lica",
-                        "operator": "equals",
-                        "value": "pravno"
-                    },
-                    "target": "pib",
-                    "action": "show"
-                }
+                    "id": "rule-pib-show",
+                    "description": "Prikazi PIB za pravno lice",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {"fieldId": "tip_lica", "operator": "equals", "value": "pravno"}
+                    ],
+                    "actions": [{"targetFieldId": "pib", "type": "show"}],
+                },
             ],
             theme={
                 "primaryColor": "#8B5CF6",
                 "backgroundColor": "#F5F3FF",
-                "fontFamily": "Inter, sans-serif"
-            }
+                "fontFamily": "Inter, sans-serif",
+            },
         ),
         Form(
             id=5,
             name="Event Registracija",
             description="Forma za prijavu na događaj",
             fields=[
-                {
-                    "id": "ime",
-                    "type": "text",
-                    "label": "Ime",
-                    "required": True
-                },
-                {
-                    "id": "prezime",
-                    "type": "text",
-                    "label": "Prezime",
-                    "required": True
-                },
-                {
-                    "id": "email",
-                    "type": "email",
-                    "label": "Email",
-                    "required": True
-                },
+                {"id": "ime", "type": "text", "label": "Ime", "required": True},
+                {"id": "prezime", "type": "text", "label": "Prezime", "required": True},
+                {"id": "email", "type": "email", "label": "Email", "required": True},
                 {
                     "id": "telefon",
-                    "type": "tel",
+                    "type": "phone",
                     "label": "Telefon",
-                    "required": False
+                    "required": False,
                 },
                 {
                     "id": "broj_gostiju",
@@ -276,42 +261,41 @@ def seed_forms(db: Session):
                     "required": True,
                     "min": 1,
                     "max": 5,
-                    "default": 1
+                    "default": 1,
                 },
                 {
                     "id": "dijeta",
                     "type": "checkbox",
                     "label": "Imam posebne dijetetske zahteve",
-                    "required": False
+                    "required": False,
                 },
                 {
                     "id": "dijeta_opis",
-                    "type": "textarea",
+                    "type": "textArea",
                     "label": "Opišite dijetetske zahteve",
                     "required": False,
-                    "visible": False
-                }
+                    "visible": False,
+                },
             ],
             rules=[
                 {
-                    "type": "visibility",
-                    "condition": {
-                        "field": "dijeta",
-                        "operator": "equals",
-                        "value": True
-                    },
-                    "target": "dijeta_opis",
-                    "action": "show"
+                    "id": "rule-dijeta-opis-show",
+                    "description": "Prikazi opis dijete ako je dijeta cekirana",
+                    "conditionLogic": "and",
+                    "conditions": [
+                        {"fieldId": "dijeta", "operator": "equals", "value": True}
+                    ],
+                    "actions": [{"targetFieldId": "dijeta_opis", "type": "show"}],
                 }
             ],
             theme={
                 "primaryColor": "#EF4444",
                 "backgroundColor": "#FEE2E2",
-                "fontFamily": "Montserrat, sans-serif"
-            }
-        )
+                "fontFamily": "Montserrat, sans-serif",
+            },
+        ),
     ]
-    
+
     db.add_all(forms)
     db.commit()
     logger.info(f"✅ Kreirano {len(forms)} formi")
@@ -320,9 +304,9 @@ def seed_forms(db: Session):
 def seed_submissions(db: Session):
     """Kreira test submissions"""
     logger.info("📨 Kreiranje test submissions...")
-    
-    now = datetime.utcnow()
-    
+
+    now = utcnow()
+
     submissions = [
         # Submissions za Kontakt Formu (id=1)
         Submission(
@@ -331,8 +315,8 @@ def seed_submissions(db: Session):
             data={
                 "ime": "Marko Marković",
                 "email": "marko.markovic@example.com",
-                "poruka": "Pozdrav! Zanima me više informacija o vašim uslugama."
-            }
+                "poruka": "Pozdrav! Zanima me više informacija o vašim uslugama.",
+            },
         ),
         Submission(
             form_id=1,
@@ -340,8 +324,8 @@ def seed_submissions(db: Session):
             data={
                 "ime": "Ana Anić",
                 "email": "ana.anic@example.com",
-                "poruka": "Odličan proizvod! Sve pohvale timu."
-            }
+                "poruka": "Odličan proizvod! Sve pohvale timu.",
+            },
         ),
         Submission(
             form_id=1,
@@ -349,10 +333,9 @@ def seed_submissions(db: Session):
             data={
                 "ime": "Petar Petrović",
                 "email": "petar.petrovic@example.com",
-                "poruka": "Imam tehničko pitanje. Kako mogu da kontaktiram podršku?"
-            }
+                "poruka": "Imam tehničko pitanje. Kako mogu da kontaktiram podršku?",
+            },
         ),
-        
         # Submissions za Registracionu Formu (id=2)
         Submission(
             form_id=2,
@@ -363,8 +346,8 @@ def seed_submissions(db: Session):
                 "lozinka": "********",
                 "datum_rodjenja": "1995-03-15",
                 "drzava": "rs",
-                "saglasnost": True
-            }
+                "saglasnost": True,
+            },
         ),
         Submission(
             form_id=2,
@@ -375,10 +358,9 @@ def seed_submissions(db: Session):
                 "lozinka": "********",
                 "datum_rodjenja": "1990-07-22",
                 "drzava": "hr",
-                "saglasnost": True
-            }
+                "saglasnost": True,
+            },
         ),
-        
         # Submissions za Anketu (id=3)
         Submission(
             form_id=3,
@@ -386,8 +368,8 @@ def seed_submissions(db: Session):
             data={
                 "ocena": 5,
                 "komentar": "Odličan servis, brza dostava!",
-                "preporuka": "da"
-            }
+                "preporuka": "da",
+            },
         ),
         Submission(
             form_id=3,
@@ -395,17 +377,13 @@ def seed_submissions(db: Session):
             data={
                 "ocena": 4,
                 "komentar": "Dobro, ali može i bolje.",
-                "preporuka": "mozda"
-            }
+                "preporuka": "mozda",
+            },
         ),
         Submission(
             form_id=3,
             submitted_at=now - timedelta(hours=4),
-            data={
-                "ocena": 3,
-                "komentar": "",
-                "preporuka": "ne"
-            }
+            data={"ocena": 3, "komentar": "", "preporuka": "ne"},
         ),
         Submission(
             form_id=3,
@@ -413,10 +391,9 @@ def seed_submissions(db: Session):
             data={
                 "ocena": 5,
                 "komentar": "Najbolji proizvod koji sam probao!",
-                "preporuka": "da"
-            }
+                "preporuka": "da",
+            },
         ),
-        
         # Submissions za Formu sa Pravilima (id=4)
         Submission(
             form_id=4,
@@ -424,8 +401,8 @@ def seed_submissions(db: Session):
             data={
                 "tip_lica": "fizicko",
                 "ime_prezime": "Milan Milić",
-                "jmbg": "1234567890123"
-            }
+                "jmbg": "1234567890123",
+            },
         ),
         Submission(
             form_id=4,
@@ -434,10 +411,9 @@ def seed_submissions(db: Session):
                 "tip_lica": "pravno",
                 "ime_prezime": "Tech Solutions DOO",
                 "naziv_firme": "Tech Solutions",
-                "pib": "123456789"
-            }
+                "pib": "123456789",
+            },
         ),
-        
         # Submissions za Event Registraciju (id=5)
         Submission(
             form_id=5,
@@ -448,8 +424,8 @@ def seed_submissions(db: Session):
                 "email": "stefan@example.com",
                 "telefon": "+381641234567",
                 "broj_gostiju": 2,
-                "dijeta": False
-            }
+                "dijeta": False,
+            },
         ),
         Submission(
             form_id=5,
@@ -461,8 +437,8 @@ def seed_submissions(db: Session):
                 "telefon": "+381691234567",
                 "broj_gostiju": 1,
                 "dijeta": True,
-                "dijeta_opis": "Vegetarijanska ishrana, bez glutena"
-            }
+                "dijeta_opis": "Vegetarijanska ishrana, bez glutena",
+            },
         ),
         Submission(
             form_id=5,
@@ -473,11 +449,11 @@ def seed_submissions(db: Session):
                 "email": "nikola@example.com",
                 "telefon": "",
                 "broj_gostiju": 3,
-                "dijeta": False
-            }
-        )
+                "dijeta": False,
+            },
+        ),
     ]
-    
+
     db.add_all(submissions)
     db.commit()
     logger.info(f"✅ Kreirano {len(submissions)} submissions")
@@ -486,33 +462,33 @@ def seed_submissions(db: Session):
 def run_seed(clear: bool = False):
     """
     Pokreće seed process
-    
+
     Args:
         clear: Ako je True, briše sve postojeće podatke pre seed-a
     """
     logger.info("🌱 Pokretanje seed procesa...")
-    
+
     db = SessionLocal()
     try:
         if clear:
             clear_data(db)
-        
+
         seed_forms(db)
         seed_submissions(db)
-        
+
         # Prikaži statistiku
         forms_count = db.query(Form).count()
         submissions_count = db.query(Submission).count()
-        
+
         logger.info("=" * 60)
         logger.info("🎉 Seed završen uspešno!")
-        logger.info(f"📊 Statistika:")
+        logger.info("📊 Statistika:")
         logger.info(f"   - Forme: {forms_count}")
         logger.info(f"   - Submissions: {submissions_count}")
         logger.info("=" * 60)
-        
+
     except Exception as e:
-        logger.error(f"❌ Greška tokom seed-a: {str(e)}")
+        logger.error(f"❌ Greška tokom seed-a: {e!s}")
         db.rollback()
         raise
     finally:
@@ -521,10 +497,8 @@ def run_seed(clear: bool = False):
 
 if __name__ == "__main__":
     import sys
-    
+
     # Prihvati --clear flag
     clear = "--clear" in sys.argv
-    
+
     run_seed(clear=clear)
-
-

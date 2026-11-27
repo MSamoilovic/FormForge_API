@@ -1,49 +1,46 @@
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import timedelta
 from secrets import token_urlsafe
 
 from fastapi import HTTPException, status
 
-from app.domain.models.user import User, UserRole
-from app.domain.models.api_key import APIKey
+from app.api.auth_schema import (
+    APIKeyCreate,
+    APIKeyCreatedResponse,
+    TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserResponse,
+    UserWithTokenResponse,
+)
 from app.application.interfaces.user_repository import IUserRepository
 from app.core.security import (
-    verify_password,
-    get_password_hash,
     create_access_token,
     create_refresh_token,
-    decode_token
+    decode_token,
+    get_password_hash,
+    verify_password,
 )
-from app.api.auth_schema import (
-    UserRegister,
-    UserLogin,
-    TokenResponse,
-    UserWithTokenResponse,
-    UserResponse,
-    APIKeyCreate,
-    APIKeyCreatedResponse
-)
+from app.core.time import utcnow
+from app.domain.models.api_key import APIKey
+from app.domain.models.user import User, UserRole
 
 
 class AuthService:
     def __init__(self, user_repo: IUserRepository):
         self.user_repo = user_repo
 
-    # =========================================================================
-    # User Registration & Login
-    # =========================================================================
+    # --- User Registration & Login ---
 
     async def register_user(self, user_data: UserRegister) -> UserWithTokenResponse:
         if await self.user_repo.get_by_email(user_data.email):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
+                detail="Email already registered",
             )
 
         if await self.user_repo.get_by_username(user_data.username):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already taken"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
             )
 
         new_user = User(
@@ -53,7 +50,7 @@ class AuthService:
             full_name=user_data.full_name,
             role=UserRole.FORM_CREATOR,
             is_active=True,
-            is_verified=False
+            is_verified=False,
         )
         new_user = await self.user_repo.create(new_user)
 
@@ -64,7 +61,7 @@ class AuthService:
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            user=UserResponse.model_validate(new_user)
+            user=UserResponse.model_validate(new_user),
         )
 
     async def login_user(self, login_data: UserLogin) -> UserWithTokenResponse:
@@ -80,10 +77,10 @@ class AuthService:
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User account is deactivated"
+                detail="User account is deactivated",
             )
 
-        user.last_login = datetime.utcnow()
+        user.last_login = utcnow()
         await self.user_repo.save(user)
 
         access_token = create_access_token(data={"sub": str(user.id)})
@@ -93,7 +90,7 @@ class AuthService:
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            user=UserResponse.model_validate(user)
+            user=UserResponse.model_validate(user),
         )
 
     async def refresh_access_token(self, refresh_token: str) -> TokenResponse:
@@ -103,7 +100,7 @@ class AuthService:
             if payload.get("type") != "refresh":
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid token type"
+                    detail="Invalid token type",
                 )
 
             user_id = payload.get("sub")
@@ -111,8 +108,7 @@ class AuthService:
 
             if not user or not user.is_active:
                 raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid token"
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
                 )
 
             new_access_token = create_access_token(data={"sub": str(user.id)})
@@ -121,7 +117,7 @@ class AuthService:
             return TokenResponse(
                 access_token=new_access_token,
                 refresh_token=new_refresh_token,
-                token_type="bearer"
+                token_type="bearer",
             )
 
         except HTTPException:
@@ -129,18 +125,17 @@ class AuthService:
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired refresh token"
+                detail="Invalid or expired refresh token",
             )
 
-    # =========================================================================
-    # User Profile Management
-    # =========================================================================
+    # --- User Profile Management ---
 
-    async def change_password(self, user: User, old_password: str, new_password: str) -> bool:
+    async def change_password(
+        self, user: User, old_password: str, new_password: str
+    ) -> bool:
         if not verify_password(old_password, user.hashed_password):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Incorrect password"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password"
             )
 
         user.hashed_password = get_password_hash(new_password)
@@ -150,8 +145,8 @@ class AuthService:
     async def update_profile(
         self,
         user: User,
-        full_name: Optional[str] = None,
-        username: Optional[str] = None
+        full_name: str | None = None,
+        username: str | None = None,
     ) -> User:
         if full_name is not None:
             user.full_name = full_name
@@ -161,29 +156,28 @@ class AuthService:
             if existing and existing.id != user.id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Username already taken"
+                    detail="Username already taken",
                 )
             user.username = username
 
         return await self.user_repo.save(user)
 
-    # =========================================================================
-    # API Key Management
-    # =========================================================================
-
-    async def create_api_key(self, user: User, key_data: APIKeyCreate) -> APIKeyCreatedResponse:
+    # --- API Key Management ---
+    async def create_api_key(
+        self, user: User, key_data: APIKeyCreate
+    ) -> APIKeyCreatedResponse:
         key = f"ff_{token_urlsafe(32)}"
 
         expires_at = None
         if key_data.expires_in_days:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=key_data.expires_in_days)
+            expires_at = utcnow() + timedelta(days=key_data.expires_in_days)
 
         api_key = APIKey(
             key=key,
             name=key_data.name,
             user_id=user.id,
             scopes=key_data.scopes,
-            expires_at=expires_at
+            expires_at=expires_at,
         )
         api_key = await self.user_repo.create_api_key(api_key)
 
@@ -192,7 +186,7 @@ class AuthService:
             key=key,
             name=api_key.name,
             scopes=api_key.scopes,
-            expires_at=api_key.expires_at
+            expires_at=api_key.expires_at,
         )
 
     async def list_api_keys(self, user: User) -> list[APIKey]:
@@ -203,14 +197,12 @@ class AuthService:
 
         if not api_key:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="API key not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
             )
 
         if api_key.user_id != user.id:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
             )
 
         api_key.is_active = False

@@ -16,13 +16,12 @@ dependencies = [
     "alembic>=1.16.5",
     "pydantic-settings>=2.10.1",
     "python-dotenv>=1.1.1",
-    "google-generativeai>=0.8.5",
-    "google-genai>=1.56.0",
     "python-jose[cryptography]>=3.3.0",
     "bcrypt>=4.0.0",
     "python-multipart>=0.0.20",
     "email-validator>=2.0.0",
     "openpyxl>=3.1.0",
+    "openai>=2.46.0",
 ]
 
 [project.scripts]
@@ -36,3 +35,51 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.6",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "DTZ",  # flake8-datetimez (naive datetime)
+    "BLE",  # blind except
+    "PIE",  # flake8-pie
+    "RET",  # flake8-return
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501", # line length is handled by the formatter
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency markers are meant to be called in default arguments.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Form",
+    "fastapi.File",
+    "fastapi.Security",
+    "app.core.security.require_role",
+    "app.core.security.require_scope",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]

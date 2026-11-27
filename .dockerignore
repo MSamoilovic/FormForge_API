@@ -40,7 +40,7 @@ docker-compose*.yml
 # Documentation (keep README.md for pyproject.toml)
 CHANGELOG.md
 CONTRIBUTING.md
-Docs/
+docs/
 
 # Tests
 tests/
