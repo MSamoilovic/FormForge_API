@@ -11,7 +11,7 @@ from app.api.v1.form_import import router as form_import_routes
 app = FastAPI(
     title="FormForge API",
     description="Dynamic form builder API with AI integration and authentication",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # --- CORS Middleware ---
@@ -27,8 +27,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"], 
-    allow_headers=["*"], 
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -41,5 +41,5 @@ app.include_router(ai_routes, prefix="/api/ai", tags=["AI"])
 
 @app.get("/api/health")
 def read_root():
-    """ Checks whether the API is alive. """
+    """Checks whether the API is alive."""
     return {"status": "ok"}

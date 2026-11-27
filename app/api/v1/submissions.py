@@ -25,16 +25,20 @@ def _ensure_can_read_submissions(db_form, user: User) -> None:
     """
     if db_form.owner_id and db_form.owner_id != user.id:
         raise HTTPException(
-            status_code=403,
-            detail="Not authorized to access this form's submissions"
+            status_code=403, detail="Not authorized to access this form's submissions"
         )
 
-@router.post("/{form_id}/submissions", response_model=SubmissionResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/{form_id}/submissions",
+    response_model=SubmissionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_submission_for_form(
     form_id: int,
     submission: SubmissionCreate,
     service: SubmissionService = Depends(get_submission_service),
-    form_service: FormService = Depends(get_form_service)
+    form_service: FormService = Depends(get_form_service),
 ):
     db_form = await form_service.get_form_by_id(form_id)
     if not db_form:
@@ -42,12 +46,13 @@ async def create_submission_for_form(
 
     return await service.create_submission(form_id=form_id, submission_data=submission)
 
+
 @router.get("/{form_id}", response_model=List[SubmissionResponse])
 async def read_submissions_for_form(
     form_id: int,
     service: SubmissionService = Depends(get_submission_service),
     form_service: FormService = Depends(get_form_service),
-    current_user: User = Depends(require_scope("read"))
+    current_user: User = Depends(require_scope("read")),
 ):
     db_form = await form_service.get_form_by_id(form_id)
     if not db_form:
@@ -56,13 +61,14 @@ async def read_submissions_for_form(
 
     return await service.get_submissions_by_form_id(form_id)
 
+
 @router.get("/{form_id}/export", response_class=StreamingResponse)
 async def export_form_submissions(
     form_id: int,
     request: Request,
     service: SubmissionService = Depends(get_submission_service),
     form_service: FormService = Depends(get_form_service),
-    current_user: User = Depends(require_scope("read"))
+    current_user: User = Depends(require_scope("read")),
 ):
     db_form = await form_service.get_form_by_id(form_id)
     if not db_form:
@@ -74,15 +80,17 @@ async def export_form_submissions(
     # JSON lookup.
     allowed_keys = {field["id"] for field in (db_form.fields or []) if "id" in field}
     filters = {
-        key: value
-        for key, value in request.query_params.items()
-        if key in allowed_keys
+        key: value for key, value in request.query_params.items() if key in allowed_keys
     }
 
-    submissions = await service.get_submissions_by_form_id(form_id=form_id, filters=filters)
+    submissions = await service.get_submissions_by_form_id(
+        form_id=form_id, filters=filters
+    )
 
     if not submissions:
-        raise HTTPException(status_code=404, detail="No submissions found for the given criteria.")
+        raise HTTPException(
+            status_code=404, detail="No submissions found for the given criteria."
+        )
 
     field_ids = [field["id"] for field in (db_form.fields or []) if "id" in field]
     csv_content = service.to_csv(submissions, field_ids)
@@ -90,5 +98,7 @@ async def export_form_submissions(
     return StreamingResponse(
         io.StringIO(csv_content),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=form_{form_id}_submissions.csv"}
+        headers={
+            "Content-Disposition": f"attachment; filename=form_{form_id}_submissions.csv"
+        },
     )

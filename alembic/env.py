@@ -7,9 +7,9 @@ import os
 import sys
 from dotenv import load_dotenv
 
-sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv(dotenv_path=dotenv_path)
 
 from app.domain.models.base import Base
@@ -26,7 +26,7 @@ config = context.config
 
 # Use Settings class to get DATABASE_URL (constructed from individual DB env vars)
 db_url = settings.DATABASE_URL
-config.set_main_option('sqlalchemy.url', db_url)
+config.set_main_option("sqlalchemy.url", db_url)
 
 
 if config.config_file_name is not None:
@@ -56,9 +56,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

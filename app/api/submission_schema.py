@@ -2,8 +2,10 @@ from typing import Any, Dict
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
+
 class SubmissionCreate(BaseModel):
-    data: Dict[str, Any]  
+    data: Dict[str, Any]
+
 
 class SubmissionResponse(SubmissionCreate):
     id: int

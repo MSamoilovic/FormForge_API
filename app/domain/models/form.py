@@ -13,7 +13,7 @@ class Form(Base, TimestampMixin):
     fields = Column(JSON, nullable=False)
     rules = Column(JSON, nullable=True, default=[])
     theme = Column(JSON, nullable=True)
-    
+
     # Ownership
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
@@ -22,4 +22,3 @@ class Form(Base, TimestampMixin):
     submissions = relationship("Submission", back_populates="form")
     owner = relationship("User", back_populates="forms")
     organization = relationship("Organization", back_populates="forms")
-

@@ -17,22 +17,22 @@ router = APIRouter()
 
 @router.post("/test-prompt")
 async def test_ai_prompt(
-        request: PromptRequest,
-        ai_service: AIService = Depends(get_ai_service)
+    request: PromptRequest, ai_service: AIService = Depends(get_ai_service)
 ):
     try:
         response_text = await ai_service.generate_response(request.prompt)
     except Exception:
         logger.exception("AI request failed")
-        raise HTTPException(status_code=502, detail="Could not get a response from the AI model.")
+        raise HTTPException(
+            status_code=502, detail="Could not get a response from the AI model."
+        )
 
     return {"response": response_text}
 
 
 @router.post("/generate-form-from-text", response_model=FormSchemaCreate)
 async def generate_form_from_text(
-        request: PromptRequest,
-        ai_service: AIService = Depends(get_ai_service)
+    request: PromptRequest, ai_service: AIService = Depends(get_ai_service)
 ):
     form_schema_definition = json.dumps(FormSchemaCreate.model_json_schema(), indent=2)
 
@@ -53,12 +53,13 @@ async def generate_form_from_text(
 
     try:
         ai_response_str = await ai_service.generate_json_from_prompt(
-            system_prompt=system_prompt,
-            user_prompt=request.prompt
+            system_prompt=system_prompt, user_prompt=request.prompt
         )
     except Exception:
         logger.exception("AI request failed")
-        raise HTTPException(status_code=502, detail="Could not get a response from the AI model.")
+        raise HTTPException(
+            status_code=502, detail="Could not get a response from the AI model."
+        )
 
     try:
         return FormSchemaCreate(**json.loads(ai_response_str))
@@ -67,4 +68,7 @@ async def generate_form_from_text(
         raise HTTPException(status_code=502, detail="AI failed to generate valid JSON.")
     except ValidationError:
         logger.exception("AI JSON did not match schema")
-        raise HTTPException(status_code=502, detail="AI response did not match the required form schema.")
+        raise HTTPException(
+            status_code=502,
+            detail="AI response did not match the required form schema.",
+        )

@@ -6,6 +6,7 @@ Contains:
 - JWT token creation and verification
 - Dependencies for FastAPI route protection
 """
+
 from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Optional
@@ -34,20 +35,17 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifies that a plain password matches the hash."""
     return bcrypt.checkpw(
-        plain_password.encode('utf-8'),
-        hashed_password.encode('utf-8')
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
     )
 
 
 def get_password_hash(password: str) -> str:
     """Hashes a password using bcrypt."""
-    return bcrypt.hashpw(
-        password.encode('utf-8'),
-        bcrypt.gensalt()
-    ).decode('utf-8')
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 # --- JWT Token Functions ---
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
@@ -67,16 +65,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode.update({
-        "exp": expire,
-        "type": "access",
-        "iat": utcnow()
-    })
+    to_encode.update({"exp": expire, "type": "access", "iat": utcnow()})
 
     encoded_jwt = jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
 
@@ -94,16 +86,10 @@ def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
     expire = utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
-    to_encode.update({
-        "exp": expire,
-        "type": "refresh",
-        "iat": utcnow()
-    })
+    to_encode.update({"exp": expire, "type": "refresh", "iat": utcnow()})
 
     encoded_jwt = jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
 
@@ -121,18 +107,15 @@ def decode_token(token: str) -> dict:
     Raises:
         JWTError: If the token is invalid or expired
     """
-    return jwt.decode(
-        token,
-        settings.SECRET_KEY,
-        algorithms=[settings.ALGORITHM]
-    )
+    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
 # --- FastAPI Dependencies ---
 
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """
     FastAPI dependency that returns the currently logged-in user.
@@ -174,8 +157,7 @@ async def get_current_user(
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
 
     return user
@@ -193,13 +175,11 @@ def require_role(allowed_roles: list[UserRole]):
     Returns:
         FastAPI dependency function
     """
-    async def role_checker(
-        current_user: User = Depends(get_current_user)
-    ) -> User:
+
+    async def role_checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in allowed_roles:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
             )
         return current_user
 
@@ -207,6 +187,7 @@ def require_role(allowed_roles: list[UserRole]):
 
 
 # --- API Key / M2M Authentication ---
+
 
 @dataclass
 class AuthContext:
@@ -216,12 +197,15 @@ class AuthContext:
     from a human session (JWT). `scopes` is only meaningful for API keys —
     JWT users act with the full authority of their account.
     """
+
     user: User
     via_api_key: bool = False
     scopes: list[str] = field(default_factory=list)
 
 
-async def _authenticate_api_key(api_key: str, db: AsyncSession) -> Optional[tuple[User, APIKey]]:
+async def _authenticate_api_key(
+    api_key: str, db: AsyncSession
+) -> Optional[tuple[User, APIKey]]:
     """Resolve an API key string to its (user, key) pair, or None if invalid."""
     result = await db.execute(select(APIKey).filter(APIKey.key == api_key))
     key_obj = result.scalar_one_or_none()
@@ -239,7 +223,9 @@ async def _authenticate_api_key(api_key: str, db: AsyncSession) -> Optional[tupl
 
 
 async def get_auth_context(
-    bearer: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    bearer: Optional[HTTPAuthorizationCredentials] = Depends(
+        HTTPBearer(auto_error=False)
+    ),
     api_key: Optional[str] = Depends(api_key_header),
     db: AsyncSession = Depends(get_db),
 ) -> AuthContext:
@@ -256,7 +242,9 @@ async def get_auth_context(
             if payload.get("type") == "access":
                 user_id = payload.get("sub")
                 if user_id is not None:
-                    result = await db.execute(select(User).filter(User.id == int(user_id)))
+                    result = await db.execute(
+                        select(User).filter(User.id == int(user_id))
+                    )
                     user = result.scalar_one_or_none()
                     if user and user.is_active:
                         return AuthContext(user=user)
@@ -292,6 +280,7 @@ def require_scope(scope: str):
 
     Used as: current_user: User = Depends(require_scope("write"))
     """
+
     async def scope_checker(ctx: AuthContext = Depends(get_auth_context)) -> User:
         if ctx.via_api_key and scope not in ctx.scopes:
             raise HTTPException(
@@ -305,11 +294,12 @@ def require_scope(scope: str):
 
 # --- Optional Auth Dependency ---
 
+
 async def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(
         HTTPBearer(auto_error=False)
     ),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> Optional[User]:
     """
     Optional dependency - returns the user if logged in, None otherwise.
@@ -339,4 +329,3 @@ async def get_current_user_optional(
 
     except JWTError:
         return None
-

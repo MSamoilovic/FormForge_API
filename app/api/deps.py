@@ -19,25 +19,40 @@ from app.application.services.excel_import_service import ExcelImportService
 def get_form_repository(db: AsyncSession = Depends(get_db)) -> IFormRepository:
     return FormRepository(db)
 
-def get_form_service(repo: IFormRepository = Depends(get_form_repository)) -> FormService:
+
+def get_form_service(
+    repo: IFormRepository = Depends(get_form_repository),
+) -> FormService:
     return FormService(repo)
 
-def get_submission_repository(db: AsyncSession = Depends(get_db)) -> ISubmissionRepository:
+
+def get_submission_repository(
+    db: AsyncSession = Depends(get_db),
+) -> ISubmissionRepository:
     return SubmissionRepository(db_session=db)
 
-def get_submission_service(repo: ISubmissionRepository = Depends(get_submission_repository)) -> SubmissionService:
+
+def get_submission_service(
+    repo: ISubmissionRepository = Depends(get_submission_repository),
+) -> SubmissionService:
     return SubmissionService(repo)
+
 
 def get_user_repository(db: AsyncSession = Depends(get_db)) -> IUserRepository:
     return UserRepository(db)
 
-def get_auth_service(repo: IUserRepository = Depends(get_user_repository)) -> AuthService:
+
+def get_auth_service(
+    repo: IUserRepository = Depends(get_user_repository),
+) -> AuthService:
     return AuthService(repo)
+
 
 @lru_cache
 def get_ai_service() -> AIService:
     """AIService holds an HTTP client, so it is instantiated once and shared across requests."""
     return AIService()
+
 
 @lru_cache
 def get_excel_import_service() -> ExcelImportService:

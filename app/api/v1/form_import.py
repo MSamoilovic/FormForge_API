@@ -1,6 +1,7 @@
 """
 API endpoints za import formi iz Excel fajlova.
 """
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
@@ -18,8 +19,10 @@ router = APIRouter(prefix="/forms/import", tags=["Form Import"])
 
 # --- Response Schemas ---
 
+
 class ImportSuccessResponse(BaseModel):
     """Response kada je import uspešan."""
+
     success: bool = True
     message: str = "Excel parsed successfully"
     form: FormSchemaCreate
@@ -27,6 +30,7 @@ class ImportSuccessResponse(BaseModel):
 
 class ImportErrorResponse(BaseModel):
     """Response kada import ima greške."""
+
     success: bool = False
     message: str = "Validation errors found"
     errors: List[str]
@@ -34,18 +38,18 @@ class ImportErrorResponse(BaseModel):
 
 # --- Helpers ---
 
+
 async def _read_xlsx_upload(file: UploadFile) -> bytes:
     """Validate the upload is an .xlsx file and return its bytes, or raise 400."""
     if not file.filename:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No file provided"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No file provided"
         )
 
-    if not file.filename.endswith('.xlsx'):
+    if not file.filename.endswith(".xlsx"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file type. Only .xlsx files are supported."
+            detail="Invalid file type. Only .xlsx files are supported.",
         )
 
     try:
@@ -53,7 +57,7 @@ async def _read_xlsx_upload(file: UploadFile) -> bytes:
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Error reading file: {str(e)}"
+            detail=f"Error reading file: {str(e)}",
         )
 
 
@@ -76,14 +80,15 @@ async def _parse_upload(file: UploadFile, service: ExcelImportService):
 
 # --- Endpoints ---
 
+
 @router.get(
     "/template",
     summary="Download Excel template",
     description="Download empty Excel template for form import.",
-    response_class=StreamingResponse
+    response_class=StreamingResponse,
 )
 async def download_template(
-    service: ExcelImportService = Depends(get_excel_import_service)
+    service: ExcelImportService = Depends(get_excel_import_service),
 ):
     """
     Preuzimanje praznog Excel template-a za import formi.
@@ -100,9 +105,7 @@ async def download_template(
     return StreamingResponse(
         excel_file,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={
-            "Content-Disposition": "attachment; filename=formforge_template.xlsx"
-        }
+        headers={"Content-Disposition": "attachment; filename=formforge_template.xlsx"},
     )
 
 
@@ -111,14 +114,17 @@ async def download_template(
     summary="Import form from Excel",
     description="Upload Excel file and parse it into form schema.",
     responses={
-        200: {"model": ImportSuccessResponse, "description": "Excel parsed successfully"},
+        200: {
+            "model": ImportSuccessResponse,
+            "description": "Excel parsed successfully",
+        },
         400: {"model": ImportErrorResponse, "description": "Validation errors"},
-    }
+    },
 )
 async def import_from_excel(
     file: UploadFile = File(..., description="Excel file (.xlsx)"),
     current_user: User = Depends(get_current_user),
-    service: ExcelImportService = Depends(get_excel_import_service)
+    service: ExcelImportService = Depends(get_excel_import_service),
 ):
     """
     Import forme iz Excel fajla.
@@ -146,13 +152,16 @@ async def import_from_excel(
     summary="Preview form from Excel (no auth)",
     description="Upload Excel file and preview the form schema without authentication.",
     responses={
-        200: {"model": ImportSuccessResponse, "description": "Excel parsed successfully"},
+        200: {
+            "model": ImportSuccessResponse,
+            "description": "Excel parsed successfully",
+        },
         400: {"model": ImportErrorResponse, "description": "Validation errors"},
-    }
+    },
 )
 async def preview_from_excel(
     file: UploadFile = File(..., description="Excel file (.xlsx)"),
-    service: ExcelImportService = Depends(get_excel_import_service)
+    service: ExcelImportService = Depends(get_excel_import_service),
 ):
     """
     Preview forme iz Excel fajla (bez autentifikacije).

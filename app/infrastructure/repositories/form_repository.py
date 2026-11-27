@@ -24,12 +24,10 @@ class FormRepository(IFormRepository):
         result = await self.db.execute(select(Form).filter(Form.owner_id == owner_id))
         return result.scalars().all()
 
-
-    async def create(self, form_data: FormSchemaCreate, owner_id: Optional[int] = None) -> Form:
-        db_form = Form(
-            **form_data.model_dump(),
-            owner_id=owner_id
-        )
+    async def create(
+        self, form_data: FormSchemaCreate, owner_id: Optional[int] = None
+    ) -> Form:
+        db_form = Form(**form_data.model_dump(), owner_id=owner_id)
         self.db.add(db_form)
         await self.db.commit()
         await self.db.refresh(db_form)

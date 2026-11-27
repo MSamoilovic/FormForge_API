@@ -6,7 +6,6 @@ from app.domain.models.api_key import APIKey
 
 
 class IUserRepository(ABC):
-
     @abstractmethod
     async def get_by_id(self, user_id: int) -> Optional[User]:
         pass

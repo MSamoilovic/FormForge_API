@@ -19,7 +19,9 @@ class IFormRepository(ABC):
         pass
 
     @abstractmethod
-    async def create(self, form_data: FormSchemaCreate, owner_id: Optional[int] = None) -> Form:
+    async def create(
+        self, form_data: FormSchemaCreate, owner_id: Optional[int] = None
+    ) -> Form:
         """Kreira novu formu"""
         pass
 

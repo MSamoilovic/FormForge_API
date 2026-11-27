@@ -13,5 +13,6 @@ class TimestampMixin:
     Models with a different shape (APIKey has only `created_at`, Submission
     uses `submitted_at`) keep their own columns.
     """
+
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, onupdate=utcnow)

@@ -8,6 +8,7 @@ from enum import Enum
 class FieldType(str, Enum):
     """Canonical field types — kept in sync with the frontend `FieldType` enum
     (libs/models/src/field.model.ts). Naming is camelCase, matching the frontend."""
+
     TEXT = "text"
     NUMBER = "number"
     SELECT = "select"

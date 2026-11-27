@@ -21,7 +21,9 @@ class FormService:
         """Vraća sve forme koje pripadaju određenom korisniku."""
         return await self.form_repo.get_by_owner(owner_id)
 
-    async def create_form(self, form_data: FormSchemaCreate, owner_id: Optional[int] = None) -> Form:
+    async def create_form(
+        self, form_data: FormSchemaCreate, owner_id: Optional[int] = None
+    ) -> Form:
         """Kreira novu formu, opciono sa owner_id."""
         return await self.form_repo.create(form_data, owner_id=owner_id)
 
@@ -33,15 +35,19 @@ class FormService:
         """
         form = await self.form_repo.get_by_id(form_id)
         if form is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Form not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Form not found"
+            )
         if form.owner_id and form.owner_id != user_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to modify this form"
+                detail="Not authorized to modify this form",
             )
         return form
 
-    async def update_form(self, form_id: int, form_data: FormSchemaCreate, user_id: int) -> Optional[Form]:
+    async def update_form(
+        self, form_id: int, form_data: FormSchemaCreate, user_id: int
+    ) -> Optional[Form]:
         """Update a form after verifying ownership."""
         await self._get_owned_form(form_id, user_id)
         return await self.form_repo.update(form_id, form_data)

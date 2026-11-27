@@ -4,6 +4,7 @@ Service for communicating with the AI model.
 Uses an OpenAI-compatible interface, so the provider is a matter of
 configuration (`AI_BASE_URL` / `AI_MODEL`) rather than code. Defaults to Gemini.
 """
+
 from openai import AsyncOpenAI
 
 from app.core.config import settings
@@ -25,7 +26,9 @@ class AIService:
         )
         return response.choices[0].message.content
 
-    async def generate_json_from_prompt(self, system_prompt: str, user_prompt: str) -> str:
+    async def generate_json_from_prompt(
+        self, system_prompt: str, user_prompt: str
+    ) -> str:
         """
         Returns the model's response in JSON format as a string.
 

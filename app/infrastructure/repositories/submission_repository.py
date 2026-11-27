@@ -12,17 +12,18 @@ class SubmissionRepository(ISubmissionRepository):
     def __init__(self, db_session: AsyncSession):
         self.session = db_session
 
-    async def create(self, form_id: int, submission_data: SubmissionCreate) -> Submission:
-        db_submission = Submission(
-            form_id=form_id,
-            data=submission_data.data
-        )
+    async def create(
+        self, form_id: int, submission_data: SubmissionCreate
+    ) -> Submission:
+        db_submission = Submission(form_id=form_id, data=submission_data.data)
         self.session.add(db_submission)
         await self.session.commit()
         await self.session.refresh(db_submission)
         return db_submission
 
-    async def get_all_by_form_id(self, form_id: int, filters: Dict[str, Any] = None) -> List[type[Submission]]:
+    async def get_all_by_form_id(
+        self, form_id: int, filters: Dict[str, Any] = None
+    ) -> List[type[Submission]]:
         query = select(Submission).filter(Submission.form_id == form_id)
 
         if filters:
@@ -43,7 +44,9 @@ class SubmissionRepository(ISubmissionRepository):
     async def get_by_id(self, submission_id: int) -> Optional[Submission]:
         pass
 
-    async def update(self, submission_id: int, submission_data: SubmissionCreate) -> Optional[Submission]:
+    async def update(
+        self, submission_id: int, submission_data: SubmissionCreate
+    ) -> Optional[Submission]:
         pass
 
     async def delete(self, submission_id: int) -> Optional[Submission]:
