@@ -44,7 +44,8 @@ Dependency flow: `api → application → domain ← infrastructure`. Dependenci
 
 - Python **3.12+**
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
-- PostgreSQL (or Docker, which provides it)
+- PostgreSQL for local development (expected on `localhost:5433`)
+- Docker (optional, for running the full stack)
 
 ## Getting Started
 
@@ -62,21 +63,15 @@ Open `.env` and set the database credentials, `GEMINI_API_KEY`, and a `SECRET_KE
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-### 2. Run with Docker (recommended)
+### 2. Run locally with uv (development)
 
-Start the full stack (API + PostgreSQL + pgAdmin):
-
-```bash
-docker compose up -d --build
-```
-
-Or run only the database and pgAdmin, and develop the API locally:
+Uses your local PostgreSQL on port `5433`. Create the database once, e.g.:
 
 ```bash
-./dev.sh
+createdb -h localhost -p 5433 -U <user> formforge_db
 ```
 
-### 3. Run locally with uv
+Then:
 
 ```bash
 uv sync                    # install dependencies
@@ -84,14 +79,25 @@ uv run alembic upgrade head   # apply migrations
 uv run dev                 # start the dev server (hot reload)
 ```
 
+### 3. Run the full stack with Docker
+
+Starts the API together with its own PostgreSQL container:
+
+```bash
+docker compose up -d --build
+# or
+./start.sh
+```
+
+The Docker database has **no volume** — its data is wiped on `docker compose down` — and it is not exposed on a host port (the API reaches it as `db:5432`).
+
 ### Services & Ports
 
 | Service | URL |
 |---|---|
 | API | http://localhost:8001 |
 | Swagger docs | http://localhost:8001/docs |
-| PostgreSQL | localhost:5432 |
-| pgAdmin | http://localhost:5051 |
+| PostgreSQL (local dev) | localhost:5433 |
 
 ---
 

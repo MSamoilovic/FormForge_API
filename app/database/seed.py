@@ -3,10 +3,12 @@ Seed script za FormForge API
 Popunjava bazu sa test podacima za development
 """
 
+import asyncio
 import logging
 from datetime import timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.time import utcnow
 from app.domain.models.form import Form
@@ -17,16 +19,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def clear_data(db: Session):
+async def clear_data(db: AsyncSession):
     """Briše sve postojeće podatke iz baze"""
     logger.info("🗑️  Brisanje postojećih podataka...")
-    db.query(Submission).delete()
-    db.query(Form).delete()
-    db.commit()
+    await db.execute(delete(Submission))
+    await db.execute(delete(Form))
+    await db.commit()
     logger.info("✅ Podaci obrisani")
 
 
-def seed_forms(db: Session):
+async def seed_forms(db: AsyncSession):
     """Kreira test forme"""
     logger.info("📝 Kreiranje test formi...")
 
@@ -297,11 +299,11 @@ def seed_forms(db: Session):
     ]
 
     db.add_all(forms)
-    db.commit()
+    await db.commit()
     logger.info(f"✅ Kreirano {len(forms)} formi")
 
 
-def seed_submissions(db: Session):
+async def seed_submissions(db: AsyncSession):
     """Kreira test submissions"""
     logger.info("📨 Kreiranje test submissions...")
 
@@ -455,44 +457,72 @@ def seed_submissions(db: Session):
     ]
 
     db.add_all(submissions)
-    db.commit()
+    await db.commit()
     logger.info(f"✅ Kreirano {len(submissions)} submissions")
+
+
+async def _count(db: AsyncSession, model) -> int:
+    return (await db.execute(select(func.count()).select_from(model))).scalar_one()
+
+
+async def reset_sequences(db: AsyncSession):
+    """
+    Forme se ubacuju sa eksplicitnim ID-jevima, pa Postgres sekvenca ostaje
+    iza njih. Pomeri sekvence na MAX(id) da sledeći INSERT ne bi pukao.
+    """
+    for table in ("forms", "submissions"):
+        await db.execute(
+            text(
+                f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
+                f"COALESCE((SELECT MAX(id) FROM {table}), 0) + 1, false)"
+            )
+        )
+    await db.commit()
+
+
+async def _run_seed(clear: bool) -> None:
+    logger.info("🌱 Pokretanje seed procesa...")
+
+    async with SessionLocal() as db:
+        try:
+            if clear:
+                await clear_data(db)
+            elif await _count(db, Form) > 0:
+                logger.warning(
+                    "⚠️  Baza već sadrži forme; seed koristi fiksne ID-jeve (1-5) "
+                    "i pukao bi na duplikatima. Pokreni `uv run seed --clear`."
+                )
+                return
+
+            await seed_forms(db)
+            await seed_submissions(db)
+            await reset_sequences(db)
+
+            # Prikaži statistiku
+            forms_count = await _count(db, Form)
+            submissions_count = await _count(db, Submission)
+
+            logger.info("=" * 60)
+            logger.info("🎉 Seed završen uspešno!")
+            logger.info("📊 Statistika:")
+            logger.info(f"   - Forme: {forms_count}")
+            logger.info(f"   - Submissions: {submissions_count}")
+            logger.info("=" * 60)
+
+        except Exception as e:
+            logger.error(f"❌ Greška tokom seed-a: {e!s}")
+            await db.rollback()
+            raise
 
 
 def run_seed(clear: bool = False):
     """
-    Pokreće seed process
+    Pokreće seed process (sinhroni ulaz za CLI skripte)
 
     Args:
         clear: Ako je True, briše sve postojeće podatke pre seed-a
     """
-    logger.info("🌱 Pokretanje seed procesa...")
-
-    db = SessionLocal()
-    try:
-        if clear:
-            clear_data(db)
-
-        seed_forms(db)
-        seed_submissions(db)
-
-        # Prikaži statistiku
-        forms_count = db.query(Form).count()
-        submissions_count = db.query(Submission).count()
-
-        logger.info("=" * 60)
-        logger.info("🎉 Seed završen uspešno!")
-        logger.info("📊 Statistika:")
-        logger.info(f"   - Forme: {forms_count}")
-        logger.info(f"   - Submissions: {submissions_count}")
-        logger.info("=" * 60)
-
-    except Exception as e:
-        logger.error(f"❌ Greška tokom seed-a: {e!s}")
-        db.rollback()
-        raise
-    finally:
-        db.close()
+    asyncio.run(_run_seed(clear))
 
 
 if __name__ == "__main__":
